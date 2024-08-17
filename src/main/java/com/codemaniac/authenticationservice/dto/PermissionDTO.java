@@ -9,8 +9,6 @@ public class PermissionDTO {
   private Long id;
   private ResourceDTO resource;
   private Action action;
-//  private Set<UserDTO> users;
-
 
   public PermissionDTO() {
   }
@@ -20,7 +18,6 @@ public class PermissionDTO {
     this.id = id;
     this.resource = resource;
     this.action = action;
-//    this.users = users;
   }
 
   @Override

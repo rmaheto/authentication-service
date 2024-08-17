@@ -18,8 +18,8 @@ public class ResourceController {
   private final ResourceService resourceService;
 
   @PostMapping
-  public ResponseEntity<Void> createResource(@RequestParam Long appId, @RequestParam String name) {
-    resourceService.addResource(appId, name);
+  public ResponseEntity<Void> createResource(@RequestParam Long appId, @RequestBody ResourceDTO resourceDTO) {
+    resourceService.addResource(appId, resourceDTO);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
@@ -27,11 +27,12 @@ public class ResourceController {
   public ResponseEntity<ResourceDTO> getResourceById(@PathVariable Long id) {
     Optional<ResourceDTO> resourceDTO = resourceService.findById(id);
     return resourceDTO.map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
+        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Void> updateResource(@PathVariable Long id, @RequestBody ResourceDTO resourceDTO) {
+  public ResponseEntity<Void> updateResource(@PathVariable Long id,
+      @RequestBody ResourceDTO resourceDTO) {
     resourceService.updateResource(id, resourceDTO);
     return ResponseEntity.ok().build();
   }

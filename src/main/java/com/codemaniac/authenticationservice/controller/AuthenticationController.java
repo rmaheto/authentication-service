@@ -22,35 +22,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthenticationController {
 
-    private final AuthenticationManager authenticationManager;
+  private final AuthenticationManager authenticationManager;
 
-    private final JwtUtil jwtUtil;
+  private final JwtUtil jwtUtil;
 
-    private final UserServiceImpl userService;
+  private final UserRepository userRepository;
 
-    private final UserRepository userRepository;
-    private final ApplicationServiceImpl applicationService;
+  private final ApplicationServiceImpl applicationService;
 
-    @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
-        try {
+  @PostMapping("/authenticate")
+  public ResponseEntity<AuthenticationResponse> createAuthenticationToken(
+      @RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+    try {
 //            // Verify the audience (domain)
 //            if (!applicationService.existsByDomain(authenticationRequest.getAudience())) {
 //                throw new AuthenticationException("Invalid audience");
 //            }
 
-             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            authenticationRequest.getLogonId(), authenticationRequest.getPassword())
-            );
+      authenticationManager.authenticate(
+          new UsernamePasswordAuthenticationToken(
+              authenticationRequest.getLogonId(), authenticationRequest.getPassword())
+      );
 
-            User user = userRepository.findByLogonId(authenticationRequest.getLogonId());
-            final String jwt = jwtUtil.generateToken(user, authenticationRequest.getAudience());
+      User user = userRepository.findByLogonId(authenticationRequest.getLogonId());
+      final String jwt = jwtUtil.generateToken(user, authenticationRequest.getAudience());
 
-            return ResponseEntity.ok(new AuthenticationResponse(jwt));
+      return ResponseEntity.ok(new AuthenticationResponse(jwt));
 
-        } catch (BadCredentialsException e) {
-            throw new AuthenticationException("Incorrect username or password",e.getCause());
-        }
+    } catch (BadCredentialsException e) {
+      throw new AuthenticationException("Incorrect username or password", e.getCause());
     }
+  }
 }

@@ -10,7 +10,7 @@ public interface ResourceService {
 
   Optional<ResourceDTO> findById(Long id);
 
-  void addResource(Long appId, String name);
+  void addResource(Long appId, ResourceDTO resourceDTO);
 
   void updateResource(Long id, ResourceDTO resourceDTO);
 

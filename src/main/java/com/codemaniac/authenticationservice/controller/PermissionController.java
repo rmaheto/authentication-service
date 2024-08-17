@@ -1,17 +1,22 @@
 package com.codemaniac.authenticationservice.controller;
 
 import com.codemaniac.authenticationservice.dto.PermissionDTO;
-import com.codemaniac.authenticationservice.exception.ResourceNotFoundException;
 import com.codemaniac.authenticationservice.model.Action;
-import com.codemaniac.authenticationservice.model.Permission;
 import com.codemaniac.authenticationservice.service.PermissionService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/permissions")
@@ -28,8 +33,8 @@ public class PermissionController {
 
   @GetMapping
   public ResponseEntity<List<PermissionDTO>> getPermissions(
-          @RequestParam("userId") Optional<Long> userId,
-          @RequestParam("appId") Optional<Long> appId) {
+      @RequestParam("userId") Optional<Long> userId,
+      @RequestParam("appId") Optional<Long> appId) {
     List<PermissionDTO> permissions = permissionService.getPermissions(userId, appId);
     return ResponseEntity.ok(permissions);
   }
@@ -41,10 +46,22 @@ public class PermissionController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<PermissionDTO> updatePermission(@PathVariable Long id, @RequestBody PermissionDTO permissionDTO) {
+  public ResponseEntity<PermissionDTO> updatePermission(@PathVariable Long id,
+      @RequestBody PermissionDTO permissionDTO) {
     PermissionDTO updatedPermission = permissionService.updatePermission(id, permissionDTO);
     return ResponseEntity.ok(updatedPermission);
   }
+
+  @PostMapping("/{userId}/resources/{resourceId}/update-permissions")
+  @PreAuthorize("hasAuthority('ADMIN')")
+  public ResponseEntity<Void> updateUserPermissions(
+      @PathVariable Long userId,
+      @PathVariable Long resourceId,
+      @RequestBody Action updatedAction) {
+    permissionService.updatePermissionsForUser(userId, resourceId, updatedAction);
+    return ResponseEntity.ok().build();
+  }
+
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deletePermission(@PathVariable Long id) {
