@@ -13,4 +13,12 @@ public class ApplicationMapper {
     applicationDTO.setDomain(application.getDomain());
     return applicationDTO;
   }
+
+  public static Application toEntity(ApplicationDTO applicationDTO) {
+    Application application = new Application();
+    application.setId(applicationDTO.getId());
+    application.setName(applicationDTO.getName());
+    application.setDomain(applicationDTO.getDomain());
+    return application;
+  }
 }

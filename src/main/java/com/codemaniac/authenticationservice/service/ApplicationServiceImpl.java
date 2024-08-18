@@ -1,15 +1,16 @@
 package com.codemaniac.authenticationservice.service;
 
 import com.codemaniac.authenticationservice.dto.ApplicationDTO;
+import com.codemaniac.authenticationservice.dto.ApplicationMapper;
 import com.codemaniac.authenticationservice.dto.ResourceDTO;
 import com.codemaniac.authenticationservice.exception.ResourceNotFoundException;
+import com.codemaniac.authenticationservice.mapper.ResourceMapper;
 import com.codemaniac.authenticationservice.model.Action;
 import com.codemaniac.authenticationservice.model.Application;
 import com.codemaniac.authenticationservice.model.Permission;
 import com.codemaniac.authenticationservice.model.Resource;
 import com.codemaniac.authenticationservice.model.User;
 import com.codemaniac.authenticationservice.repository.ApplicationRepository;
-import com.codemaniac.authenticationservice.repository.PermissionRepository;
 import com.codemaniac.authenticationservice.repository.ResourceRepository;
 import com.codemaniac.authenticationservice.repository.UserRepository;
 import java.util.List;
@@ -31,8 +32,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 
   private final UserRepository userRepository;
 
-  private final PermissionRepository permissionRepository;
-
   @Override
   public ApplicationDTO registerApplication(String name, String domain) {
     try {
@@ -41,7 +40,7 @@ public class ApplicationServiceImpl implements ApplicationService {
       application.setDomain(domain);
       Application savedApp = applicationRepository.save(application);
       log.info("registered app with name: {} and domain: {} ", name, domain);
-      return convertToDTO(savedApp);
+      return ApplicationMapper.convertToDTO(savedApp);
     } catch (Exception e) {
       log.warn("Failed to register app with name: {} with domain: {}", name, domain, e);
       return null;
@@ -51,7 +50,7 @@ public class ApplicationServiceImpl implements ApplicationService {
   @Override
   public ApplicationDTO findByName(String name) {
     Application application = applicationRepository.findByName(name);
-    return convertToDTO(application);
+    return ApplicationMapper.convertToDTO(application);
   }
 
   @Override
@@ -61,13 +60,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 
   @Override
   public Optional<ApplicationDTO> findById(Long id) {
-    return applicationRepository.findById(id).map(this::convertToDTO);
+    return applicationRepository.findById(id).map(ApplicationMapper::convertToDTO);
   }
 
   @Override
   public List<ApplicationDTO> findAll() {
     return applicationRepository.findAll().stream()
-        .map(this::convertToDTO)
+        .map(ApplicationMapper::convertToDTO)
         .toList();
   }
 
@@ -103,14 +102,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     assignDefaultPermissionsToUsers(application, resource);
     log.info("resource:{} added to app with name: {} successfully", application.getName(),
         resource);
-    return convertToDTO(resource);
+    return ResourceMapper.toDTO(resource);
   }
 
   private void assignDefaultPermissionsToUsers(Application application, Resource resource) {
     // Fetch all users assigned to the application
     List<User> users = userRepository.findByApplicationsContaining(application);
 
-    for (User user : users) {
+    users.forEach(user -> {
       // Create a new permission for the resource with default values
       Permission permission = new Permission();
       permission.setResource(resource);
@@ -118,40 +117,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
       // Add the permission to the user's permissions
       user.getPermissions().add(permission);
-    }
+    });
+
     // Save the users with the new permissions
     userRepository.saveAll(users);
-  }
-
-  private ApplicationDTO convertToDTO(Application application) {
-    ApplicationDTO applicationDTO = new ApplicationDTO();
-    applicationDTO.setId(application.getId());
-    applicationDTO.setName(application.getName());
-    applicationDTO.setDomain(application.getDomain());
-    return applicationDTO;
-  }
-
-  private ResourceDTO convertToDTO(Resource resource) {
-    ResourceDTO resourceDTO = new ResourceDTO();
-    resourceDTO.setId(resource.getId());
-    resourceDTO.setName(resource.getName());
-    resourceDTO.setApplication(convertToDTO(resource.getApplication()));
-    return resourceDTO;
-  }
-
-  private Application convertToEntity(ApplicationDTO applicationDTO) {
-    Application application = new Application();
-    application.setId(applicationDTO.getId());
-    application.setName(applicationDTO.getName());
-    application.setDomain(applicationDTO.getDomain());
-    return application;
-  }
-
-  private Resource convertToEntity(ResourceDTO resourceDTO) {
-    Resource resource = new Resource();
-    resource.setId(resourceDTO.getId());
-    resource.setName(resourceDTO.getName());
-    resource.setApplication(convertToEntity(resourceDTO.getApplication()));
-    return resource;
   }
 }
