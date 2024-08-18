@@ -24,4 +24,12 @@ public class ResourceMapper {
 
     return resource;
   }
+
+  private Resource convertToEntity(ResourceDTO resourceDTO) {
+    Resource resource = new Resource();
+    resource.setId(resourceDTO.getId());
+    resource.setName(resourceDTO.getName());
+    resource.setApplication(ApplicationMapper.toEntity(resourceDTO.getApplication()));
+    return resource;
+  }
 }
