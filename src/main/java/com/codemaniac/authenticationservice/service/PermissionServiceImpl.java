@@ -1,12 +1,13 @@
 package com.codemaniac.authenticationservice.service;
 
-import com.codemaniac.authenticationservice.dto.ApplicationMapper;
 import com.codemaniac.authenticationservice.dto.PermissionDTO;
-import com.codemaniac.authenticationservice.dto.ResourceDTO;
 import com.codemaniac.authenticationservice.exception.ResourceNotFoundException;
+import com.codemaniac.authenticationservice.mapper.PermissionMapper;
+import com.codemaniac.authenticationservice.mapper.ResourceMapper;
 import com.codemaniac.authenticationservice.model.Action;
 import com.codemaniac.authenticationservice.model.Application;
 import com.codemaniac.authenticationservice.model.Permission;
+import com.codemaniac.authenticationservice.model.PermissionUpdateRequest;
 import com.codemaniac.authenticationservice.model.Resource;
 import com.codemaniac.authenticationservice.model.User;
 import com.codemaniac.authenticationservice.repository.ApplicationRepository;
@@ -35,7 +36,7 @@ public class PermissionServiceImpl implements PermissionService{
   public PermissionDTO getPermissionById(Long id) {
     Permission permission = permissionRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
-    return convertToDTO(permission);
+    return PermissionMapper.toDTO(permission);
   }
 
   @Override
@@ -52,16 +53,16 @@ public class PermissionServiceImpl implements PermissionService{
     } else {
       // Return all permissions if no criteria provided
       return permissionRepository.findAll().stream()
-              .map(this::convertToDTO)
+              .map(PermissionMapper::toDTO)
               .toList();
     }
   }
 
   @Override
   public PermissionDTO createPermission(PermissionDTO permissionDTO) {
-    Permission permission = convertToEntity(permissionDTO);
+    Permission permission = PermissionMapper.toEntity(permissionDTO);
     Permission savedPermission = permissionRepository.save(permission);
-    return convertToDTO(savedPermission);
+    return PermissionMapper.toDTO(savedPermission);
   }
 
   @Override
@@ -70,9 +71,9 @@ public class PermissionServiceImpl implements PermissionService{
             .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
 
     permission.setAction(permissionDTO.getAction());
-    permission.setResource(convertToEntity(permissionDTO.getResource()));
+    permission.setResource(ResourceMapper.toEntity(permissionDTO.getResource()));
     Permission updatedPermission = permissionRepository.save(permission);
-    return convertToDTO(updatedPermission);
+    return PermissionMapper.toDTO(updatedPermission);
   }
 
   @Transactional
@@ -96,6 +97,37 @@ public class PermissionServiceImpl implements PermissionService{
     permissionRepository.save(permission);
   }
 
+  @Transactional
+  @Override
+  public void updatePermissionsForUser(Long userId, List<PermissionUpdateRequest> permissionUpdates) {
+    // Fetch the user
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+    for (PermissionUpdateRequest updateRequest : permissionUpdates) {
+      // Fetch the resource
+      Resource resource = resourceRepository.findById(updateRequest.getResourceId())
+          .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + updateRequest.getResourceId()));
+
+      // Find the existing permission or create a new one
+      Permission permission = user.getPermissions().stream()
+          .filter(p -> p.getResource().equals(resource))
+          .findFirst()
+          .orElseGet(() -> {
+            Permission newPermission = new Permission();
+            newPermission.setResource(resource);
+            newPermission.setAction(new Action()); // Default values
+            user.getPermissions().add(newPermission);
+            return newPermission;
+          });
+
+      // Update the permission's action
+      permission.setAction(updateRequest.getUpdatedAction());
+    }
+
+    // Save the user with updated permissions
+    userRepository.save(user);
+  }
   @Override
   public void deletePermission(Long id) {
     Permission permission = permissionRepository.findById(id)
@@ -103,40 +135,11 @@ public class PermissionServiceImpl implements PermissionService{
     permissionRepository.delete(permission);
   }
 
-  private PermissionDTO convertToDTO(Permission permission) {
-    ResourceDTO resourceDTO = new ResourceDTO(
-            permission.getResource().getId(),
-            permission.getResource().getName(),
-            ApplicationMapper.convertToDTO(permission.getResource().getApplication())
-    );
-    return new PermissionDTO(
-            permission.getId(),
-            resourceDTO,
-            permission.getAction()
-    );
-  }
-
-  private Permission convertToEntity(PermissionDTO permissionDTO) {
-    Permission permission = new Permission();
-    permission.setId(permissionDTO.getId());
-    permission.setAction(permissionDTO.getAction());
-    permission.setResource(convertToEntity(permissionDTO.getResource()));
-    return permission;
-  }
-
-  private Resource convertToEntity(ResourceDTO resourceDTO) {
-    Resource resource = new Resource();
-    resource.setId(resourceDTO.getId());
-    resource.setName(resourceDTO.getName());
-
-    return resource;
-  }
-
   private List<PermissionDTO> getPermissionsByUser(Long userId) {
     User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     return user.getPermissions().stream()
-            .map(this::convertToDTO)
+            .map(PermissionMapper::toDTO)
             .toList();
   }
 
@@ -145,7 +148,7 @@ public class PermissionServiceImpl implements PermissionService{
             .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
     return permissionRepository.findAll().stream()
             .filter(permission -> permission.getResource().getApplication().equals(application))
-            .map(this::convertToDTO)
+            .map(PermissionMapper::toDTO)
             .toList();
   }
 
@@ -156,7 +159,7 @@ public class PermissionServiceImpl implements PermissionService{
             .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
     return user.getPermissions().stream()
             .filter(permission -> permission.getResource().getApplication().equals(application))
-            .map(this::convertToDTO)
+            .map(PermissionMapper::toDTO)
             .toList();
   }
 }

@@ -1,7 +1,9 @@
 package com.codemaniac.authenticationservice.controller;
 
 import com.codemaniac.authenticationservice.dto.UserDTO;
+import com.codemaniac.authenticationservice.model.PermissionUpdateRequest;
 import com.codemaniac.authenticationservice.model.UserRegistrationRequest;
+import com.codemaniac.authenticationservice.service.PermissionService;
 import com.codemaniac.authenticationservice.service.UserService;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
   private final UserService userService;
+  private final PermissionService permissionService;
 
   @PostMapping("/register")
   @PreAuthorize("hasAuthority('ADMIN')")
@@ -67,6 +70,15 @@ public class UserController {
       @RequestParam boolean enabled) {
     userService.updateUserStatus(userId, enabled);
     return ResponseEntity.accepted().build();
+  }
+
+  @PreAuthorize("hasAuthority('ADMIN')")
+  public ResponseEntity<Void> updateUserPermissions(
+      @PathVariable Long userId,
+      @RequestBody List<PermissionUpdateRequest> permissionUpdates) {
+
+    permissionService.updatePermissionsForUser(userId, permissionUpdates);
+    return ResponseEntity.ok().build();
   }
 
 }

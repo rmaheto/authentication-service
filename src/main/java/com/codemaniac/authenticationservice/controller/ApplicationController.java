@@ -19,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApplicationController {
 
-
   private final ApplicationService applicationService;
 
   @PostMapping
@@ -48,7 +47,7 @@ public class ApplicationController {
     applicationDTO.setId(id); // Ensure the ID in the DTO is set to the path variable ID
     applicationService.updateApplication(applicationDTO);
     return ResponseEntity.noContent()
-        .build(); // Return 204 No Content to indicate successful update
+        .build();
   }
 
   @PostMapping("/{appId}/resources")
