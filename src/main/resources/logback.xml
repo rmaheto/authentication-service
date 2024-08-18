@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
   <variable name="logPath" value="${catalina.base}/logs"/>
-
   <!-- Define the log pattern -->
   <variable name="DEFAULT_LOG_PATTERN"
     value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}|level=%p|server=${serverLevel}|app=DASH|thread=%t|logger=%c|subc=%M|message=%m %n"/>
@@ -20,20 +19,39 @@
     </encoder>
   </appender>
 
+  <!-- Define the security appender -->
+  <appender name="SECURITY_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${logPath}/security.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>security.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>${DEFAULT_LOG_PATTERN}</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNC_SECURITY_LOG" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>500</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <appender-ref ref="SECURITY_LOG"/>
+  </appender>
+
   <appender name="ASYNC_DEFAULT" class="ch.qos.logback.classic.AsyncAppender">
     <queueSize>500</queueSize>
     <discardingThreshold>0</discardingThreshold>
     <appender-ref ref="DEFAULT"/>
   </appender>
 
-  <!-- Root logger: log everything at INFO level to both console and file -->
-  <root level="INFO">
-    <appender-ref ref="ASYNC_DEFAULT"/>
-  </root>
 
   <!-- Logger for the specific package to log at DEBUG level -->
   <logger name="com.codemaniac" level="DEBUG">
     <appender-ref ref="ASYNC_DEFAULT"/>
+  </logger>
+
+  <!-- Security Logger -->
+  <logger name="com.codemaniac.security" level="INFO" additivity="false">
+    <appender-ref ref="ASYNC_SECURITY_LOG" />
   </logger>
 
   <!-- Logger for Spring Boot to log at WARN level -->
@@ -45,4 +63,9 @@
   <logger name="org.hibernate" level="ERROR">
     <appender-ref ref="ASYNC_DEFAULT"/>
   </logger>
+
+  <!-- Root logger: log everything at INFO level to both console and file -->
+  <root level="INFO">
+    <appender-ref ref="ASYNC_DEFAULT"/>
+  </root>
 </configuration>
