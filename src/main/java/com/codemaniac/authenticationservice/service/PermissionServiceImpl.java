@@ -1,18 +1,24 @@
 package com.codemaniac.authenticationservice.service;
 
-import com.codemaniac.authenticationservice.dto.*;
+import com.codemaniac.authenticationservice.dto.ApplicationMapper;
+import com.codemaniac.authenticationservice.dto.PermissionDTO;
+import com.codemaniac.authenticationservice.dto.ResourceDTO;
 import com.codemaniac.authenticationservice.exception.ResourceNotFoundException;
-import com.codemaniac.authenticationservice.model.*;
+import com.codemaniac.authenticationservice.model.Action;
+import com.codemaniac.authenticationservice.model.Application;
+import com.codemaniac.authenticationservice.model.Permission;
+import com.codemaniac.authenticationservice.model.Resource;
+import com.codemaniac.authenticationservice.model.User;
 import com.codemaniac.authenticationservice.repository.ApplicationRepository;
 import com.codemaniac.authenticationservice.repository.PermissionRepository;
+import com.codemaniac.authenticationservice.repository.ResourceRepository;
 import com.codemaniac.authenticationservice.repository.UserRepository;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -22,6 +28,7 @@ public class PermissionServiceImpl implements PermissionService{
     private final PermissionRepository permissionRepository;
 
   private final UserRepository userRepository;
+  private final ResourceRepository resourceRepository;
 
   private final ApplicationRepository applicationRepository;
   @Override
@@ -66,6 +73,27 @@ public class PermissionServiceImpl implements PermissionService{
     permission.setResource(convertToEntity(permissionDTO.getResource()));
     Permission updatedPermission = permissionRepository.save(permission);
     return convertToDTO(updatedPermission);
+  }
+
+  @Transactional
+  public void updatePermissionsForUser(Long userId, Long resourceId, Action updatedAction) {
+    // Retrieve the user
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+    // Retrieve the resource
+    Resource resource = resourceRepository.findById(resourceId)
+        .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + resourceId));
+
+    // Find the specific permission for this user and resource
+    Permission permission = permissionRepository.findByUserAndResource(user, resource)
+        .orElseThrow(() -> new ResourceNotFoundException("Permission not found for user and resource"));
+
+    // Update the permission's actions
+    permission.setAction(updatedAction);
+
+    // Save the updated permission
+    permissionRepository.save(permission);
   }
 
   @Override
