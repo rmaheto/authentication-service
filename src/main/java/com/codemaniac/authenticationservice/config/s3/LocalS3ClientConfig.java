@@ -1,11 +1,16 @@
 package com.codemaniac.authenticationservice.config.s3;
 
 
+import com.codemaniac.authenticationservice.exception.S3PropertyLoadException;
+import com.codemaniac.authenticationservice.shared.utils.AppUtils;
 import com.codemaniac.authenticationservice.shared.utils.AwsUtils;
 import io.findify.s3mock.S3Mock;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,43 +40,30 @@ public class LocalS3ClientConfig {
         .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
         .build();
 
-    uploadFile(environment,s3ClientConfig);
+    uploadFile(environment, s3ClientConfig);
 
     return s3ClientConfig;
   }
 
 
-  private void uploadFile(Environment environment,S3Client s3Client) {
+  private void uploadFile(Environment environment, S3Client s3Client) {
 
     String bucketName = environment.getProperty("s3.bucket");
-    createBucket(s3Client, bucketName);
+    String directoryName = environment.getProperty("properties.dir.name");
+    String desktopCredentialsFileName = environment.getProperty("properties.file.name");
+    AwsUtils.createBucket(s3Client, bucketName);
 
-    String resourceFileName = "credentials_desktop.properties";
+    Path filePath = AppUtils.resolveFilePath(directoryName, desktopCredentialsFileName);
 
-    try (InputStream resourceInputStream = LocalS3ClientConfig.class.getClassLoader()
-        .getResourceAsStream(resourceFileName)) {
-      if (resourceInputStream != null) {
-        // Upload the file using the overloaded uploadFile method
-        AwsUtils.uploadFile(s3Client, bucketName, resourceFileName, resourceInputStream,
-            resourceInputStream.available());
+    try (InputStream resourceInputStream = new FileInputStream(filePath.toFile())) {
+      // Upload the file using the overloaded uploadFile method
+      AwsUtils.uploadFile(s3Client, bucketName, desktopCredentialsFileName, resourceInputStream,
+          resourceInputStream.available());
 
-        log.info("File uploaded to S3 Mock: {}/{}", bucketName, resourceFileName);
-      } else {
-        log.error("Resource file not found in classpath: {}", resourceFileName);
-        throw new RuntimeException("Resource file not found");
-      }
+      log.info("File uploaded to S3 Mock: {}/{}", bucketName, desktopCredentialsFileName);
     } catch (IOException e) {
-      log.error("Failed to upload the file from resources: {}", resourceFileName, e);
-      throw new RuntimeException("Failed to upload resource file", e);
-    }
-  }
-
-  private static void createBucket(S3Client s3Client, String bucketName) {
-    try {
-      s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-      log.info("Bucket '{}' created successfully.", bucketName);
-    } catch (Exception e) {
-      log.warn("Bucket '{}' might already exist: {}", bucketName, e.getMessage());
+      log.error("Failed to upload the file from resources: {}", desktopCredentialsFileName, e);
+      throw new S3PropertyLoadException("Failed to upload resource file", e);
     }
   }
 

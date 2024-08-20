@@ -8,6 +8,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -77,6 +78,15 @@ public class AwsUtils {
     } catch (Exception e) {
       log.info("Failed to get region from provider, falling back to default us-east-1");
       return Region.US_EAST_1;
+    }
+  }
+
+  public static void createBucket(S3Client s3Client, String bucketName) {
+    try {
+      s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+      log.info("Bucket '{}' created successfully.", bucketName);
+    } catch (Exception e) {
+      log.warn("Bucket '{}' might already exist: {}", bucketName, e.getMessage());
     }
   }
 }
