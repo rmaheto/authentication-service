@@ -15,6 +15,7 @@
   <name>authentication-service</name>
   <description>authentication-service</description>
   <properties>
+    <aws.java-sdk-bom.version>1.12.731</aws.java-sdk-bom.version>
     <java.version>17</java.version>
     <commons.version>3.12.0</commons.version>
     <tomcat9.version>9.0.73</tomcat9.version>
@@ -22,6 +23,18 @@
     <serverLevel>desktop</serverLevel>
     <remote.debugging.port>8001</remote.debugging.port>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>2.25.51</version> <!-- Use the latest version available -->
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <!--        spring dependencies-->
     <dependency>
@@ -63,6 +76,19 @@
     </dependency>
     <!--      non-test dependencies-->
 
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId> <!-- If you need STS (Security Token Service) -->
+    </dependency>
+    <dependency>
+      <groupId>io.findify</groupId>
+      <artifactId>s3mock_2.12</artifactId>
+      <version>0.2.6</version>
+    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>

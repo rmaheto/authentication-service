@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
+  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger("com.codemaniac.security");
 
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger("com.codemaniac.security");
 
