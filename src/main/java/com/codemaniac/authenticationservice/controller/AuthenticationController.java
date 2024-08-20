@@ -6,6 +6,7 @@ import com.codemaniac.authenticationservice.model.AuthenticationResponse;
 import com.codemaniac.authenticationservice.model.ErrorResponse;
 import com.codemaniac.authenticationservice.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
-
-  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger("com.codemaniac.security");
+  private static final Logger log= LoggerFactory.getLogger("com.codemaniac.security");
 
   private final AuthenticationService authenticationService;
 
@@ -32,7 +32,7 @@ public class AuthenticationController {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(new ErrorResponse("Unauthorized", e.getMessage()));
     } catch (BadCredentialsException e) {
-      Logger.warn("Authentication failed for user '{}': Invalid credentials",
+      log.warn("Authentication failed for user '{}': Invalid credentials",
           authenticationRequest.getLogonId());
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(new ErrorResponse("Unauthorized", "Incorrect username or password"));

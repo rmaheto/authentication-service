@@ -3,7 +3,7 @@
   <variable name="logPath" value="${catalina.base}/logs"/>
   <!-- Define the log pattern -->
   <variable name="DEFAULT_LOG_PATTERN"
-    value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}|level=%p|server=${serverLevel}|app=DASH|thread=%t|logger=%c|subc=%M|message=%m %n"/>
+    value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}|level=%p|server=${serverLevel}|app=AUTH-SERV|thread=%t|logger=%c|subc=%M|message=%m %n"/>
 
   <!-- Console Appender: logs to the console -->
   <appender name="DEFAULT" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -45,9 +45,9 @@
 
 
   <!-- Logger for the specific package to log at DEBUG level -->
-  <logger name="com.codemaniac" level="DEBUG">
-    <appender-ref ref="ASYNC_DEFAULT"/>
-  </logger>
+<!--  <logger name="com.codemaniac" level="DEBUG" additivity="false">-->
+<!--    <appender-ref ref="ASYNC_DEFAULT"/>-->
+<!--  </logger>-->
 
   <!-- Security Logger -->
   <logger name="com.codemaniac.security" level="INFO" additivity="false">
@@ -55,17 +55,17 @@
   </logger>
 
   <!-- Logger for Spring Boot to log at WARN level -->
-  <logger name="org.springframework" level="WARN">
+  <logger name="org.springframework" level="WARN" additivity="false">
     <appender-ref ref="ASYNC_DEFAULT"/>
   </logger>
 
   <!-- Logger for Hibernate to log at ERROR level -->
-  <logger name="org.hibernate" level="ERROR">
+  <logger name="org.hibernate" level="ERROR" additivity="false">
     <appender-ref ref="ASYNC_DEFAULT"/>
   </logger>
 
   <!-- Root logger: log everything at INFO level to both console and file -->
-  <root level="INFO">
+  <root level="INFO" additivity="false">
     <appender-ref ref="ASYNC_DEFAULT"/>
   </root>
 </configuration>

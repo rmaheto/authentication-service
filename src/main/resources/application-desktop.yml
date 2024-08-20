@@ -1,0 +1,5 @@
+properties:
+  dir:
+    name: keys
+  file:
+    name: "credentials_desktop.properties"
