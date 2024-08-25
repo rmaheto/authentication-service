@@ -47,19 +47,16 @@ public class LocalS3ClientConfig {
 
 
   private void uploadFile(Environment environment, S3Client s3Client) {
-
     String bucketName = environment.getProperty("s3.bucket");
     String directoryName = environment.getProperty("properties.dir.name");
     String desktopCredentialsFileName = environment.getProperty("properties.file.name");
-    AwsUtils.createBucket(s3Client, bucketName);
-
     Path filePath = AppUtils.resolveFilePath(directoryName, desktopCredentialsFileName);
 
+    AwsUtils.createBucket(s3Client, bucketName);
+
     try (InputStream resourceInputStream = new FileInputStream(filePath.toFile())) {
-      // Upload the file using the overloaded uploadFile method
       AwsUtils.uploadFile(s3Client, bucketName, desktopCredentialsFileName, resourceInputStream,
           resourceInputStream.available());
-
       log.info("File uploaded to S3 Mock: {}/{}", bucketName, desktopCredentialsFileName);
     } catch (IOException e) {
       log.error("Failed to upload the file from resources: {}", desktopCredentialsFileName, e);

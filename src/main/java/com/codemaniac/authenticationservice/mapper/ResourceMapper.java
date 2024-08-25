@@ -10,10 +10,14 @@ public class ResourceMapper {
   }
 
   public static ResourceDTO toDTO(Resource resource) {
-    ResourceDTO resourceDTO = new ResourceDTO();
-    resourceDTO.setId(resource.getId());
-    resourceDTO.setName(resource.getName());
-    resourceDTO.setApplication(ApplicationMapper.toDTO(resource.getApplication()));
+    ResourceDTO resourceDTO = null;
+    if (resource != null) {
+      resourceDTO = new ResourceDTO();
+      resourceDTO.setId(resource.getId());
+      resourceDTO.setName(resource.getName());
+      resourceDTO.setApplication(ApplicationMapper.toDTO(resource.getApplication()));
+    }
+
     return resourceDTO;
   }
 

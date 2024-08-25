@@ -64,16 +64,16 @@ public class JwtUtil {
           Action action = permission.getAction();
           String resourceName = permission.getResource().getName();
 
-          if (Boolean.TRUE.equals(action.getRead())) {
+          if (action.isRead()) {
             permissionMap.put(resourceName + ":READ", true);
           }
-          if (Boolean.TRUE.equals(action.getCreate())) {
+          if (action.isCreate()) {
             permissionMap.put(resourceName + ":CREATE", true);
           }
-          if (Boolean.TRUE.equals(action.getUpdate())) {
+          if (action.isUpdate()) {
             permissionMap.put(resourceName + ":UPDATE", true);
           }
-          if (Boolean.TRUE.equals(action.getDelete())) {
+          if (action.isDelete()) {
             permissionMap.put(resourceName + ":DELETE", true);
           }
 

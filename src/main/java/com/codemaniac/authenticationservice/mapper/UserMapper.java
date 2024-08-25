@@ -3,6 +3,7 @@ package com.codemaniac.authenticationservice.mapper;
 import com.codemaniac.authenticationservice.dto.PermissionDTO;
 import com.codemaniac.authenticationservice.dto.UserDTO;
 import com.codemaniac.authenticationservice.model.User;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,9 +18,12 @@ public class UserMapper {
     dto.setEnabled(user.isEnabled());
 
     // Convert permissions to PermissionDTOs
-    Set<PermissionDTO> permissionDTOS = user.getPermissions().stream()
-        .map(PermissionMapper::toDTO)
-        .collect(Collectors.toSet());
+    Set<PermissionDTO> permissionDTOS = (user.getPermissions() != null ?
+        user.getPermissions().stream()
+            .map(PermissionMapper::toDTO)
+            .collect(Collectors.toSet()) :
+        Collections.emptySet());
+
     dto.setPermissionDTOS(permissionDTOS);
 
     return dto;

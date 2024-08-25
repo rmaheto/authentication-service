@@ -30,28 +30,30 @@ public class UserController {
   @PostMapping("/register")
   @PreAuthorize("hasAuthority('ADMIN')")
   public ResponseEntity<UserDTO> registerUser(@RequestBody UserRegistrationRequest request) {
-    UserDTO user = userService.registerUser(request);
-
-    return ResponseEntity.ok(user);
+    return ResponseEntity.ok(userService.registerUser(request));
   }
 
   @GetMapping("/{userId}")
   @PreAuthorize("hasAuthority('ADMIN')")
   public ResponseEntity<UserDTO> getUserById(@PathVariable Long userId) {
-    Optional<UserDTO> user = userService.findById(userId);
 
-    return user.map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(null));
+    return ResponseEntity.ok(userService.findById(userId));
   }
 
   @GetMapping("/{userId}/app/{appId}")
   @PreAuthorize("hasAuthority('ADMIN')")
   public ResponseEntity<UserDTO> getUserPermissionsByApp(@PathVariable Long userId,
       @PathVariable Long appId) {
-    Optional<UserDTO> userDTO = userService.findUserPermissionsByApp(userId, appId);
 
-    return userDTO.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    return ResponseEntity.ok(userService.findUserPermissionsByApp(userId, appId));
+  }
+
+  @PostMapping("/{userId}/app/{appId}")
+  @PreAuthorize("hasAuthority('ADMIN')")
+  public ResponseEntity<UserDTO> assignAppToUser(@PathVariable Long userId,
+      @PathVariable Long appId) {
+
+    return ResponseEntity.ok(userService.assignApplicationToUser(userId, appId));
   }
 
   @GetMapping

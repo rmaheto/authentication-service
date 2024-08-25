@@ -11,6 +11,7 @@ import com.codemaniac.authenticationservice.model.Permission;
 import com.codemaniac.authenticationservice.model.Resource;
 import com.codemaniac.authenticationservice.model.User;
 import com.codemaniac.authenticationservice.repository.ApplicationRepository;
+import com.codemaniac.authenticationservice.repository.PermissionRepository;
 import com.codemaniac.authenticationservice.repository.ResourceRepository;
 import com.codemaniac.authenticationservice.repository.UserRepository;
 import java.util.List;
@@ -31,6 +32,8 @@ public class ApplicationServiceImpl implements ApplicationService {
   private final ResourceRepository resourceRepository;
 
   private final UserRepository userRepository;
+
+  private final PermissionRepository permissionRepository;
 
   @Override
   public ApplicationDTO registerApplication(String name, String domain) {
@@ -59,10 +62,14 @@ public class ApplicationServiceImpl implements ApplicationService {
   }
 
   @Override
-  public Optional<ApplicationDTO> findById(Long id) {
+  public Optional<ApplicationDTO> findOne(Long id) {
     return applicationRepository.findById(id).map(ApplicationMapper::convertToDTO);
   }
 
+  @Override
+  public Optional<Application> findById(Long id) {
+    return applicationRepository.findById(id);
+  }
   @Override
   public List<ApplicationDTO> findAll() {
     return applicationRepository.findAll().stream()
@@ -117,6 +124,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
       // Add the permission to the user's permissions
       user.getPermissions().add(permission);
+      permissionRepository.save(permission);
     });
 
     // Save the users with the new permissions

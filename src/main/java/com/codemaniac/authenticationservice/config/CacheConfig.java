@@ -14,9 +14,11 @@ import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableCaching
 @Configuration
+@EnableJpaAuditing
 public class CacheConfig implements CachingConfigurer {
 
   @Bean

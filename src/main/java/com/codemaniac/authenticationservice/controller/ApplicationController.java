@@ -3,12 +3,8 @@ package com.codemaniac.authenticationservice.controller;
 import com.codemaniac.authenticationservice.dto.ApplicationDTO;
 import com.codemaniac.authenticationservice.dto.ResourceDTO;
 import com.codemaniac.authenticationservice.exception.ResourceNotFoundException;
-import com.codemaniac.authenticationservice.model.Application;
-import com.codemaniac.authenticationservice.model.Resource;
 import com.codemaniac.authenticationservice.service.ApplicationService;
-import com.codemaniac.authenticationservice.service.ApplicationServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +27,7 @@ public class ApplicationController {
 
   @GetMapping("/{id}")
   public ResponseEntity<ApplicationDTO> getApplicationById(@PathVariable Long id) {
-    ApplicationDTO applicationDTO = applicationService.findById(id)
+    ApplicationDTO applicationDTO = applicationService.findOne(id)
         .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + id));
     return ResponseEntity.ok(applicationDTO);
   }

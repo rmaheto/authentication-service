@@ -2,6 +2,7 @@ package com.codemaniac.authenticationservice.controller;
 
 import com.codemaniac.authenticationservice.dto.ResourceDTO;
 import com.codemaniac.authenticationservice.service.ResourceService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,8 @@ public class ResourceController {
 
   private final ResourceService resourceService;
 
-  @PostMapping
-  public ResponseEntity<Void> createResource(@RequestParam Long appId, @RequestBody ResourceDTO resourceDTO) {
+  @PostMapping("/app/{appId}")
+  public ResponseEntity<Void> createResource(@PathVariable Long appId, @RequestBody ResourceDTO resourceDTO) {
     resourceService.addResource(appId, resourceDTO);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
@@ -30,10 +31,10 @@ public class ResourceController {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
-  @PutMapping("/{id}")
+  @PatchMapping("/{id}")
   public ResponseEntity<Void> updateResource(@PathVariable Long id,
-      @RequestBody ResourceDTO resourceDTO) {
-    resourceService.updateResource(id, resourceDTO);
+      @RequestBody Map<String, Object> updates) {
+    resourceService.patchResource(id, updates);
     return ResponseEntity.ok().build();
   }
 

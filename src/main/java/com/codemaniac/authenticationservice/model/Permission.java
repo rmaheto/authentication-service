@@ -1,6 +1,8 @@
 package com.codemaniac.authenticationservice.model;
 
 import com.codemaniac.authenticationservice.model.audit.Audit;
+import com.codemaniac.authenticationservice.model.audit.AuditInterceptor;
+import com.codemaniac.authenticationservice.model.audit.Auditable;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,7 +13,8 @@ import java.util.Set;
 @Entity
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Permission {
+@EntityListeners(AuditInterceptor.class)
+public class Permission implements Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +29,8 @@ public class Permission {
 
     @ManyToMany(mappedBy = "permissions")
     private Set<User> users = new HashSet<>();
+
     @Embedded
-    private Audit audit;
+    private Audit audit = new Audit();
 
 }

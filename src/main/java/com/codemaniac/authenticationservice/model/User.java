@@ -1,7 +1,21 @@
 package com.codemaniac.authenticationservice.model;
 
 import com.codemaniac.authenticationservice.model.audit.Audit;
-import jakarta.persistence.*;
+import com.codemaniac.authenticationservice.model.audit.AuditInterceptor;
+
+import com.codemaniac.authenticationservice.model.audit.Auditable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -13,16 +27,17 @@ import java.util.Set;
 @Data
 @Table(name = "users")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+@EntityListeners(AuditInterceptor.class)
+public class User implements Auditable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @EqualsAndHashCode.Include
   private Long id;
+  @Column(nullable = false, unique = true)
   private String logonId;
   private String password;
   private boolean enabled;
-
   private Role role;
 
   @ManyToMany(fetch = FetchType.EAGER)
@@ -42,6 +57,7 @@ public class User {
   )
   @ToString.Exclude
   private Set<Application> applications = new HashSet<>();
+
   @Embedded
-  private Audit audit;
+  private Audit audit = new Audit();
 }

@@ -15,13 +15,13 @@ public interface UserService {
 
   UserDTO registerUser(UserRegistrationRequest request);
 
-  void assignApplicationToUser(Long userId, Long appId);
+  UserDTO assignApplicationToUser(Long userId, Long appId);
 
   UserDTO findByLogonId(String logonId);
 
-  Optional<UserDTO> findById(Long userId);
+  UserDTO findById(Long userId);
 
-  Optional<UserDTO> findUserPermissionsByApp(Long userId, Long appId);
+  UserDTO findUserPermissionsByApp(Long userId, Long appId);
 
   void updateUserStatus(Long userId, boolean enabled);
 
