@@ -13,7 +13,7 @@ public class ResourceDTO {
   }
 
   // Parameterized constructor
-  public ResourceDTO(Long id, String name, ApplicationDTO application) {
+  public ResourceDTO(final Long id, final String name, final ApplicationDTO application) {
     this.id = id;
     this.name = name;
     this.application = application;

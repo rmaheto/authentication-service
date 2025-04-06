@@ -11,12 +11,12 @@ public class UserDTO {
   private String logonId;
   private boolean enabled;
   private Role role;
-  private Set<PermissionDTO> permissionDTOS;
+  private Set<ApplicationDTO> applications;
 
   // Default constructor
   public UserDTO() {
   }
-  public UserDTO(Long id, String logonId, boolean enabled, Role role) {
+  public UserDTO(final Long id, final String logonId, final boolean enabled, final Role role) {
     this.id = id;
     this.logonId = logonId;
     this.enabled = enabled;

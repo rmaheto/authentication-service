@@ -14,7 +14,7 @@ public class PermissionDTO {
   }
 
   // Parameterized constructor
-  public PermissionDTO(Long id, ResourceDTO resource, Action action) {
+  public PermissionDTO(final Long id, final ResourceDTO resource, final Action action) {
     this.id = id;
     this.resource = resource;
     this.action = action;

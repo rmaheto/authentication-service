@@ -3,17 +3,14 @@ package com.codemaniac.authenticationservice.controller;
 import com.codemaniac.authenticationservice.exception.AuthenticationException;
 import com.codemaniac.authenticationservice.model.AuthenticationRequest;
 import com.codemaniac.authenticationservice.model.AuthenticationResponse;
-import com.codemaniac.authenticationservice.model.User;
-import com.codemaniac.authenticationservice.repository.UserRepository;
-import com.codemaniac.authenticationservice.security.JwtUtil;
-import com.codemaniac.authenticationservice.service.ApplicationServiceImpl;
-import com.codemaniac.authenticationservice.service.UserServiceImpl;
+import com.codemaniac.authenticationservice.model.ErrorResponse;
+import com.codemaniac.authenticationservice.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,35 +19,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthenticationController {
 
-  private final AuthenticationManager authenticationManager;
+  private static final Logger log = LoggerFactory.getLogger("com.codemaniac.security");
 
-  private final JwtUtil jwtUtil;
-
-  private final UserRepository userRepository;
-
-  private final ApplicationServiceImpl applicationService;
+  private final AuthenticationService authenticationService;
 
   @PostMapping("/authenticate")
-  public ResponseEntity<AuthenticationResponse> createAuthenticationToken(
-      @RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+  public ResponseEntity<?> createAuthenticationToken(
+      @RequestBody final AuthenticationRequest authenticationRequest) {
     try {
-//            // Verify the audience (domain)
-//            if (!applicationService.existsByDomain(authenticationRequest.getAudience())) {
-//                throw new AuthenticationException("Invalid audience");
-//            }
-
-      authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(
-              authenticationRequest.getLogonId(), authenticationRequest.getPassword())
-      );
-
-      User user = userRepository.findByLogonId(authenticationRequest.getLogonId());
-      final String jwt = jwtUtil.generateToken(user, authenticationRequest.getAudience());
-
-      return ResponseEntity.ok(new AuthenticationResponse(jwt));
-
-    } catch (BadCredentialsException e) {
-      throw new AuthenticationException("Incorrect username or password", e.getCause());
+      final AuthenticationResponse response = authenticationService.authenticate(authenticationRequest);
+      return ResponseEntity.ok(response);
+    } catch (final AuthenticationException e) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(new ErrorResponse("Unauthorized", e.getMessage()));
+    } catch (final BadCredentialsException e) {
+      log.warn("Authentication failed for user '{}': Invalid credentials",
+          authenticationRequest.getLogonId());
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(new ErrorResponse("Unauthorized", "Incorrect username or password"));
     }
   }
 }

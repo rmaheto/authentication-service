@@ -10,12 +10,12 @@ import java.io.Serializable;
 @Embeddable
 public class Action implements Serializable {
     @Column(name = "CAN_READ")
-    private Boolean read;
+    private boolean read;
     @Column(name = "CAN_CREATE")
-    private Boolean create;
+    private boolean create;
     @Column(name = "CAN_UPDATE")
-    private Boolean update;
+    private boolean update;
     @Column(name = "CAN_DELETE")
-    private Boolean delete;
+    private boolean delete;
 
 }

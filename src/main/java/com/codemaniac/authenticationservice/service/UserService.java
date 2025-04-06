@@ -1,6 +1,7 @@
 package com.codemaniac.authenticationservice.service;
 
 import com.codemaniac.authenticationservice.dto.UserDTO;
+import com.codemaniac.authenticationservice.dto.UserPermissionDTO;
 import com.codemaniac.authenticationservice.model.AuthenticationRequest;
 import com.codemaniac.authenticationservice.model.Permission;
 import com.codemaniac.authenticationservice.model.Role;
@@ -15,14 +16,17 @@ public interface UserService {
 
   UserDTO registerUser(UserRegistrationRequest request);
 
-  void assignApplicationToUser(Long userId, Long appId);
+  UserDTO assignApplicationToUser(Long userId, Long appId);
 
   UserDTO findByLogonId(String logonId);
 
-  Optional<UserDTO> findById(Long userId);
+  UserDTO findById(Long userId);
 
-  Optional<UserDTO> findUserPermissionsByApp(Long userId, Long appId);
+  UserPermissionDTO findUserPermissions(Long userId, Long appId);
 
+  UserPermissionDTO findAllUserPermissions(Long userId);
+
+  UserDTO updateUser(Long userId, UserRegistrationRequest userDetails);
   void updateUserStatus(Long userId, boolean enabled);
 
   List<UserDTO> findAll();

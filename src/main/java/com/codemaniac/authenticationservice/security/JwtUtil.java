@@ -6,6 +6,7 @@ import com.codemaniac.authenticationservice.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.annotation.Nonnull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -18,36 +19,36 @@ public class JwtUtil {
 
   private static final String SECRET_KEY = "secret";
 
-  public String extractUsername(String token) {
+  public String extractUsername(@Nonnull final String token) {
     return extractClaim(token, Claims::getSubject);
   }
 
-  public Date extractExpiration(String token) {
+  public Date extractExpiration(@Nonnull final String token) {
     return extractClaim(token, Claims::getExpiration);
   }
 
-  public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+  public <T> T extractClaim(@Nonnull final String token, final Function<Claims, T> claimsResolver) {
     final Claims claims = extractAllClaims(token);
     return claimsResolver.apply(claims);
   }
 
-  private Claims extractAllClaims(String token) {
+  private Claims extractAllClaims(@Nonnull final String token) {
     return Jwts.parser().setSigningKey(Base64.getEncoder().encodeToString(SECRET_KEY.getBytes()))
         .parseClaimsJws(token).getBody();
   }
 
-  private Boolean isTokenExpired(String token) {
+  private Boolean isTokenExpired(@Nonnull final String token) {
     return extractExpiration(token).before(new Date());
   }
 
-  public String generateToken(User user, String audience) {
-    Map<String, Object> claims = new HashMap<>();
+  public String generateToken(final User user, final String audience) {
+    final Map<String, Object> claims = new HashMap<>();
     claims.put("iss", "com.ehi.auth");
     claims.put("sub", user.getLogonId());
     claims.put("com.ehi.pfl", "com.ehi.multi-audience-abac");
     claims.put("aud", Collections.singletonList(audience));
 
-    Map<String, Boolean> permissions = extractPermissions(user, audience);
+    final Map<String, Boolean> permissions = extractPermissions(user, audience);
 
     claims.put("com.ehi.abac-perm." + audience, permissions);
     claims.put("com.ehi.abac-loc." + audience, new HashMap<>());
@@ -55,25 +56,25 @@ public class JwtUtil {
     return createToken(claims, user.getLogonId());
   }
 
-  private Map<String, Boolean> extractPermissions(User user, String audience) {
+  private Map<String, Boolean> extractPermissions(final User user, final String audience) {
     return user.getPermissions().stream()
         .filter(
             permission -> permission.getResource().getApplication().getDomain().equals(audience))
         .flatMap(permission -> {
-          Map<String, Boolean> permissionMap = new HashMap<>();
-          Action action = permission.getAction();
-          String resourceName = permission.getResource().getName();
+          final Map<String, Boolean> permissionMap = new HashMap<>();
+          final Action action = permission.getAction();
+          final String resourceName = permission.getResource().getName();
 
-          if (Boolean.TRUE.equals(action.getRead())) {
+          if (action.isRead()) {
             permissionMap.put(resourceName + ":READ", true);
           }
-          if (Boolean.TRUE.equals(action.getCreate())) {
+          if (action.isCreate()) {
             permissionMap.put(resourceName + ":CREATE", true);
           }
-          if (Boolean.TRUE.equals(action.getUpdate())) {
+          if (action.isUpdate()) {
             permissionMap.put(resourceName + ":UPDATE", true);
           }
-          if (Boolean.TRUE.equals(action.getDelete())) {
+          if (action.isDelete()) {
             permissionMap.put(resourceName + ":DELETE", true);
           }
 
@@ -82,7 +83,7 @@ public class JwtUtil {
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private String createToken(Map<String, Object> claims, String subject) {
+  private String createToken(final Map<String, Object> claims, final String subject) {
     return Jwts.builder()
         .setClaims(claims)
         .setSubject(subject)
@@ -93,7 +94,7 @@ public class JwtUtil {
         .compact();
   }
 
-  public Boolean validateToken(String token, UserDetails userDetails) {
+  public Boolean validateToken(final String token, final UserDetails userDetails) {
     final String username = extractUsername(token);
     return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
   }
