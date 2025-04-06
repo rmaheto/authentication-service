@@ -27,13 +27,13 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 public class LocalS3ClientConfig {
 
   @Bean(name = "s3ClientConfigDesktop")
-  public S3Client s3ClientConfig(Environment environment) {
+  public S3Client s3ClientConfig(final Environment environment) {
     log.warn("creating s3 mock and client for desktop environment...");
     // Start S3Mock server
-    S3Mock s3Mock = S3Mock.create(8005, "/tmp/s3");
+    final S3Mock s3Mock = S3Mock.create(8005, "/tmp/s3");
     s3Mock.start();
 
-    S3Client s3ClientConfig = S3Client.builder()
+    final S3Client s3ClientConfig = S3Client.builder()
         .endpointOverride(URI.create("http://localhost:8005"))
         .region(AwsUtils.getRegion())
         .credentialsProvider(DefaultCredentialsProvider.create())
@@ -46,19 +46,19 @@ public class LocalS3ClientConfig {
   }
 
 
-  private void uploadFile(Environment environment, S3Client s3Client) {
-    String bucketName = environment.getProperty("s3.bucket");
-    String directoryName = environment.getProperty("properties.dir.name");
-    String desktopCredentialsFileName = environment.getProperty("properties.file.name");
-    Path filePath = AppUtils.resolveFilePath(directoryName, desktopCredentialsFileName);
+  private void uploadFile(final Environment environment, final S3Client s3Client) {
+    final String bucketName = environment.getProperty("s3.bucket");
+    final String directoryName = environment.getProperty("properties.dir.name");
+    final String desktopCredentialsFileName = environment.getProperty("properties.file.name");
+    final Path filePath = AppUtils.resolveFilePath(directoryName, desktopCredentialsFileName);
 
     AwsUtils.createBucket(s3Client, bucketName);
 
-    try (InputStream resourceInputStream = new FileInputStream(filePath.toFile())) {
+    try (final InputStream resourceInputStream = new FileInputStream(filePath.toFile())) {
       AwsUtils.uploadFile(s3Client, bucketName, desktopCredentialsFileName, resourceInputStream,
           resourceInputStream.available());
       log.info("File uploaded to S3 Mock: {}/{}", bucketName, desktopCredentialsFileName);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       log.error("Failed to upload the file from resources: {}", desktopCredentialsFileName, e);
       throw new S3PropertyLoadException("Failed to upload resource file", e);
     }

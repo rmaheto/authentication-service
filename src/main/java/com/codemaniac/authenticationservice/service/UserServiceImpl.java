@@ -2,11 +2,13 @@ package com.codemaniac.authenticationservice.service;
 
 import com.codemaniac.authenticationservice.dto.PermissionDTO;
 import com.codemaniac.authenticationservice.dto.UserDTO;
+import com.codemaniac.authenticationservice.dto.UserPermissionDTO;
 import com.codemaniac.authenticationservice.exception.ResourceNotFoundException;
 import com.codemaniac.authenticationservice.exception.UserAlreadyExistsException;
 import com.codemaniac.authenticationservice.exception.UserNotFoundException;
 import com.codemaniac.authenticationservice.mapper.PermissionMapper;
 import com.codemaniac.authenticationservice.mapper.UserMapper;
+import com.codemaniac.authenticationservice.mapper.UserPermissionMapper;
 import com.codemaniac.authenticationservice.model.Action;
 import com.codemaniac.authenticationservice.model.Application;
 import com.codemaniac.authenticationservice.model.Permission;
@@ -17,6 +19,7 @@ import com.codemaniac.authenticationservice.repository.ApplicationRepository;
 import com.codemaniac.authenticationservice.repository.PermissionRepository;
 import com.codemaniac.authenticationservice.repository.ResourceRepository;
 import com.codemaniac.authenticationservice.repository.UserRepository;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,44 +47,9 @@ public class UserServiceImpl implements UserService {
   private final PermissionRepository permissionRepository;
   private static final String USER_NOT_FOUND_MSG = "User not found with id: %s";
 
-  @Transactional
-  @Override
-  public UserDTO registerUser(UserRegistrationRequest request) {
-
-    if (userRepository.existsByLogonId(request.getLogonId())) {
-      throw new UserAlreadyExistsException("A user with this logonId already exists.");
-    }
-
-    User user = new User();
-    user.setLogonId(request.getLogonId());
-    user.setPassword(passwordEncoder.encode(request.getPassword()));
-    user.setRole(request.getRole());
-    user.setEnabled(true);
-
-    // Assign applications to the user
-
-    if (request.getApplicationIds() != null && !request.getApplicationIds().isEmpty()) {
-      List<Application> applications = applicationRepository.findAllById(
-          request.getApplicationIds());
-      user.getApplications().addAll(applications);
-
-      // Automatically assign default permissions for resources of assigned applications
-      User finalUser = user;
-      applications.forEach(application -> application.getResources().forEach(resource -> {
-        Permission permission = new Permission();
-        permission.setResource(resource);
-        permission.setAction(new Action());
-        finalUser.getPermissions().add(permission);
-      }));
-    }
-
-    user = userRepository.save(user);
-    return UserMapper.toDTO(user);
-  }
-
   @Transactional(readOnly = true)
   @Override
-  public UserDTO findById(Long userId) {
+  public UserDTO findById(final Long userId) {
     return userRepository.findById(userId)
         .map(UserMapper::toDTO)
         .orElseThrow(() -> new UserNotFoundException(String.format(USER_NOT_FOUND_MSG, userId)));
@@ -96,10 +64,91 @@ public class UserServiceImpl implements UserService {
         .toList();
   }
 
+  public UserDTO findByLogonId(final String logonId) {
+    final User user = userRepository.findByLogonId(logonId);
+    if (ObjectUtils.isEmpty(user)) {
+      return null;
+    }
+    return UserMapper.toDTO(user);
+  }
+
+  @Transactional
+  @Override
+  public UserDTO registerUser(final UserRegistrationRequest request) {
+
+    if (userRepository.existsByLogonId(request.getLogonId())) {
+      throw new UserAlreadyExistsException("A user with this logonId already exists.");
+    }
+
+    User user = new User();
+    user.setLogonId(request.getLogonId());
+    user.setPassword(passwordEncoder.encode(request.getPassword()));
+    user.setRole(request.getRole());
+    user.setEnabled(true);
+
+    // Assign applications to the user
+
+    if (request.getApplicationIds() != null && !request.getApplicationIds().isEmpty()) {
+      final List<Application> applications = applicationRepository.findAllById(
+          request.getApplicationIds());
+      user.getApplications().addAll(applications);
+
+      // Automatically assign default permissions for resources of assigned applications
+      final User finalUser = user;
+      applications.forEach(application -> application.getResources().forEach(resource -> {
+        final Permission permission = new Permission();
+        permission.setResource(resource);
+        permission.setAction(new Action());
+        finalUser.getPermissions().add(permission);
+      }));
+    }
+
+    user = userRepository.save(user);
+    return UserMapper.toDTO(user);
+  }
+
+  @Transactional
+  @Override
+  public UserDTO updateUser(final Long userId, final UserRegistrationRequest userDetails) {
+    final User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    user.setLogonId(userDetails.getLogonId());
+    user.setEnabled(userDetails.isEnabled());
+    user.setRole(userDetails.getRole());
+
+    final Set<Application> currentApplications = user.getApplications();
+    final Set<Long> newApplicationIds = new HashSet<>(userDetails.getApplicationIds());
+
+    // Remove applications that are no longer selected and their associated permissions
+    currentApplications.removeIf(application -> {
+      final boolean isRemoved = !newApplicationIds.contains(application.getId());
+      if (isRemoved) {
+        removePermissionsForApplication(user, application);  // Remove permissions related to this application
+      }
+      return isRemoved;
+    });
+
+    // Add new applications and assign default permissions
+    for (final Long appId : newApplicationIds) {
+      if (currentApplications.stream().noneMatch(app -> app.getId().equals(appId))) {
+        final Application application = applicationRepository.findById(appId)
+            .orElseThrow(() -> new ResourceNotFoundException("Application not found with id: " + appId));
+        user.getApplications().add(application);
+        assignDefaultPermissionsForApplication(user, application);
+      }
+    }
+
+    // Save the updated user
+    userRepository.saveAndFlush(user);
+
+    return UserMapper.toDTO(user);
+  }
+
   @Override
 //  @Transactional
-  public void updateUserStatus(Long userId, boolean enabled) {
-    User user = userRepository.findById(userId)
+  public void updateUserStatus(final Long userId, final boolean enabled) {
+    final User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException(String.format(USER_NOT_FOUND_MSG, userId)));
     user.setEnabled(enabled);
     userRepository.saveAndFlush(user);
@@ -107,32 +156,50 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public UserDTO findUserPermissionsByApp(Long userId, Long appId) {
-    Optional<User> user = userRepository.findById(userId);
+  public UserPermissionDTO findUserPermissions(final Long userId, final Long appId) {
+    final Optional<User> user = userRepository.findById(userId);
 
     if (user.isEmpty()) {
       throw new UserNotFoundException(String.format(USER_NOT_FOUND_MSG, userId));
     }
 
-    UserDTO userDTO = UserMapper.toDTO(user.get());
+    final UserPermissionDTO userDTO = UserPermissionMapper.toDTO(user.get());
 
     // Filter permissions by application ID
-    Set<PermissionDTO> filteredPermissions = user.get().getPermissions().stream()
+    final Set<PermissionDTO> filteredPermissions = user.get().getPermissions().stream()
         .filter(permission -> permission.getResource().getApplication().getId().equals(appId))
         .map(PermissionMapper::toDTO).collect(Collectors.toSet());
 
-    userDTO.setPermissionDTOS(filteredPermissions);
+    userDTO.setPermissions(filteredPermissions);
+
+    return userDTO;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserPermissionDTO findAllUserPermissions(final Long userId) {
+    final User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(String.format(USER_NOT_FOUND_MSG, userId)));
+
+    final UserPermissionDTO userDTO = UserPermissionMapper.toDTO(user);
+
+    // Map all permissions
+    final Set<PermissionDTO> allPermissions = user.getPermissions().stream()
+        .map(PermissionMapper::toDTO)
+        .collect(Collectors.toSet());
+
+    userDTO.setPermissions(allPermissions);
 
     return userDTO;
   }
 
   @Transactional
   @Override
-  public UserDTO assignApplicationToUser(Long userId, Long appId) {
-    User user = userRepository.findById(userId)
+  public UserDTO assignApplicationToUser(final Long userId, final Long appId) {
+    final User user = userRepository.findById(userId)
         .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-    Application application = applicationRepository.findById(appId)
+    final Application application = applicationRepository.findById(appId)
         .orElseThrow(
             () -> new ResourceNotFoundException("Application not found with id: " + appId));
 
@@ -144,23 +211,15 @@ public class UserServiceImpl implements UserService {
 
   }
 
-  public UserDTO findByLogonId(String logonId) {
-    User user = userRepository.findByLogonId(logonId);
-    if (ObjectUtils.isEmpty(user)) {
-      return null;
-    }
-    return UserMapper.toDTO(user);
-  }
+  private void assignDefaultPermissionsForApplication(final User user, final Application application) {
+    final List<Resource> resources = resourceRepository.findByApplication(application);
 
-  private void assignDefaultPermissionsForApplication(User user, Application application) {
-    List<Resource> resources = resourceRepository.findByApplication(application);
-
-    List<Permission> newPermissions = resources.stream()
+    final List<Permission> newPermissions = resources.stream()
         // Filter out resources for which the user already has permissions
         .filter(resource -> user.getPermissions().stream()
             .noneMatch(permission -> permission.getResource().equals(resource)))
         .map(resource -> {
-          Permission permission = new Permission();
+          final Permission permission = new Permission();
           permission.setResource(resource);
           permission.setAction(new Action());
           return permission;
@@ -171,6 +230,14 @@ public class UserServiceImpl implements UserService {
     permissionRepository.saveAll(newPermissions);
 
     user.getPermissions().addAll(newPermissions);
+  }
+
+  private void removePermissionsForApplication(final User user, final Application application) {
+    final Set<Permission> permissionsToRemove = user.getPermissions().stream()
+        .filter(permission -> permission.getResource().getApplication().equals(application))
+        .collect(Collectors.toSet());
+
+    user.getPermissions().removeAll(permissionsToRemove);
   }
 
 }

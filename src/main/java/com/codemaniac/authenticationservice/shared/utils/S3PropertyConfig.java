@@ -19,33 +19,33 @@ import software.amazon.awssdk.services.s3.S3Client;
 @Slf4j
 public class S3PropertyConfig {
 
-  @Bean
+//  @Bean
   @Profile("desktop")
   public PropertySourcesPlaceholderConfigurer desktopPropertySourcesPlaceholderConfigurer(
-      Environment environment,
-      @Qualifier("s3ClientConfigDesktop") S3Client s3ClientConfig) {
+      final Environment environment,
+      @Qualifier("s3ClientConfigDesktop") final S3Client s3ClientConfig) {
 
     return createPropertySourcesPlaceholderConfigurer(environment, s3ClientConfig);
   }
 
-  @Bean
+//  @Bean
   @Profile("!desktop")
   public PropertySourcesPlaceholderConfigurer nonDesktopPropertySourcesPlaceholderConfigurer(
-      Environment environment,
-      @Qualifier("s3ClientConfigNonDesktop") S3Client s3ClientConfig) {
+      final Environment environment,
+      @Qualifier("s3ClientConfigNonDesktop") final S3Client s3ClientConfig) {
 
     return createPropertySourcesPlaceholderConfigurer(environment, s3ClientConfig);
   }
 
   private PropertySourcesPlaceholderConfigurer createPropertySourcesPlaceholderConfigurer(
-      Environment environment,
-      S3Client s3Client) {
+      final Environment environment,
+      final S3Client s3Client) {
     log.warn("Loading properties from S3 for {} environment...",
         Arrays.stream(environment.getActiveProfiles()).findFirst().orElse("default"));
-    Properties properties = new Properties();
-    String resolvedKey = getObjectKey(environment.getProperty("s3.key"));
+    final Properties properties = new Properties();
+    final String resolvedKey = getObjectKey(environment.getProperty("s3.key"));
 
-    InputStream inputStream = AwsUtils.getS3ObjectContent(s3Client,
+    final InputStream inputStream = AwsUtils.getS3ObjectContent(s3Client,
         environment.getProperty("s3.bucket"), resolvedKey);
 
     if (inputStream == null) {
@@ -55,12 +55,12 @@ public class S3PropertyConfig {
     // Load properties from InputStream
     try {
       properties.load(inputStream);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new S3PropertyLoadException("Failed to load properties from S3", e);
     }
 
     // Configure PropertySourcesPlaceholderConfigurer to use the loaded properties
-    PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+    final PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
     configurer.setProperties(properties);
     configurer.setIgnoreResourceNotFound(false);
     log.warn("properties from s3 {} environment loaded successfully",
@@ -68,9 +68,9 @@ public class S3PropertyConfig {
     return configurer;
   }
 
-  private String getObjectKey(String fileName) {
-    Properties systemProperties = System.getProperties();
-    String springActiveProfile = systemProperties.getProperty("serverLevel");
+  private String getObjectKey(final String fileName) {
+    final Properties systemProperties = System.getProperties();
+    final String springActiveProfile = systemProperties.getProperty("serverLevel");
     return MessageFormat.format(fileName, springActiveProfile);
   }
 }

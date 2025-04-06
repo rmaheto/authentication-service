@@ -8,8 +8,8 @@ public class SecurityUtils {
 
   private SecurityUtils(){}
   public static  String getCurrentUsername() {
-    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    if (principal instanceof UserDetails userDetails) {
+    final Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (principal instanceof final UserDetails userDetails) {
       return userDetails.getUsername();
     }
     return Audit.SYSTEM; // Default to SYSTEM if no user is authenticated

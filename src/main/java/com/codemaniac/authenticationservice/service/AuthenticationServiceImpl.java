@@ -6,6 +6,7 @@ import com.codemaniac.authenticationservice.model.AuthenticationResponse;
 import com.codemaniac.authenticationservice.model.User;
 import com.codemaniac.authenticationservice.repository.UserRepository;
 import com.codemaniac.authenticationservice.security.JwtUtil;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   private final ApplicationService applicationService;
 
   @Override
-  public AuthenticationResponse authenticate(AuthenticationRequest authenticationRequest)
+  @Nonnull
+  public AuthenticationResponse authenticate(@Nonnull final AuthenticationRequest authenticationRequest)
       throws BadCredentialsException {
 
     if (!applicationService.existsByDomain(authenticationRequest.getAudience())) {
@@ -40,7 +42,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         )
     );
 
-    User user = userRepository.findByLogonId(authenticationRequest.getLogonId());
+    final User user = userRepository.findByLogonId(authenticationRequest.getLogonId());
 
     if (!user.isEnabled()) {
       Logger.warn("Authentication failed for user '{}': User is disabled",

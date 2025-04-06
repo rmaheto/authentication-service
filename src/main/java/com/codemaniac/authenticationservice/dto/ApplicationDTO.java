@@ -12,7 +12,7 @@ public class ApplicationDTO {
   // Default constructor
   public ApplicationDTO() {
   }
-  public ApplicationDTO(Long id, String name, String domain) {
+  public ApplicationDTO(final Long id, final String name, final String domain) {
     this.id = id;
     this.name = name;
     this.domain = domain;

@@ -25,8 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByLogonId(username);
+    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+        final User user = userRepository.findByLogonId(username);
         if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
@@ -38,7 +38,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         // Adding user-specific permissions
-        Set<SimpleGrantedAuthority> authorities= new HashSet<>();
+        final Set<SimpleGrantedAuthority> authorities= new HashSet<>();
         authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
 
         return new org.springframework.security.core.userdetails.User(user.getLogonId(), user.getPassword(), authorities);

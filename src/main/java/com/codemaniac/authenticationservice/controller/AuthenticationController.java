@@ -18,20 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
-  private static final Logger log= LoggerFactory.getLogger("com.codemaniac.security");
+
+  private static final Logger log = LoggerFactory.getLogger("com.codemaniac.security");
 
   private final AuthenticationService authenticationService;
 
   @PostMapping("/authenticate")
   public ResponseEntity<?> createAuthenticationToken(
-      @RequestBody AuthenticationRequest authenticationRequest) {
+      @RequestBody final AuthenticationRequest authenticationRequest) {
     try {
-      AuthenticationResponse response = authenticationService.authenticate(authenticationRequest);
+      final AuthenticationResponse response = authenticationService.authenticate(authenticationRequest);
       return ResponseEntity.ok(response);
-    } catch (AuthenticationException e) {
+    } catch (final AuthenticationException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(new ErrorResponse("Unauthorized", e.getMessage()));
-    } catch (BadCredentialsException e) {
+    } catch (final BadCredentialsException e) {
       log.warn("Authentication failed for user '{}': Invalid credentials",
           authenticationRequest.getLogonId());
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

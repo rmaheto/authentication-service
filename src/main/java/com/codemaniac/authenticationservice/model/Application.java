@@ -17,16 +17,16 @@ import lombok.ToString;
 @EntityListeners(AuditInterceptor.class)
 public class Application implements Auditable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
-    private Long id;
-    private String name;
-    private String domain;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @EqualsAndHashCode.Include
+  private Long id;
+  private String name;
+  private String domain;
 
-    @OneToMany(mappedBy = "application", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private Set<Resource> resources = new HashSet<>();
-    @Embedded
-    private Audit audit = new Audit();
+  @OneToMany(mappedBy = "application", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+  @ToString.Exclude
+  private Set<Resource> resources = new HashSet<>();
+  @Embedded
+  private Audit audit = new Audit();
 }

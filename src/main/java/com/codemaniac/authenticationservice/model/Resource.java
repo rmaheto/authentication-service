@@ -37,7 +37,8 @@ public class Resource implements Auditable {
   @JoinColumn(name = "application_id")
   private Application application;
 
-  @OneToMany(mappedBy = "resource", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+
+  @OneToMany(mappedBy = "resource", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
   @ToString.Exclude
   private Set<Permission> permissions = new HashSet<>();
 

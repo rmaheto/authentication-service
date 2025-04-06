@@ -50,7 +50,7 @@
 <!--  </logger>-->
 
   <!-- Security Logger -->
-  <logger name="com.codemaniac.security" level="INFO" additivity="false">
+  <logger name="com.codemaniac.authenticationservice.security" level="INFO" additivity="false">
     <appender-ref ref="ASYNC_SECURITY_LOG" />
   </logger>
 

@@ -28,10 +28,10 @@ public class CacheConfig implements CachingConfigurer {
 
   @Bean
   public javax.cache.CacheManager ehCacheManager() {
-    URL myUrl = getClass().getResource("/ehcache.xml");
-    org.ehcache.config.Configuration xmlConfig = new XmlConfiguration(Objects.requireNonNull(myUrl));
-    EhcacheCachingProvider provider = (EhcacheCachingProvider) Caching.getCachingProvider("org.ehcache.jsr107.EhcacheCachingProvider");
-    return provider.getCacheManager(provider.getDefaultURI(),  xmlConfig);
+    final URL myUrl = getClass().getResource("/ehcache.xml");
+    final org.ehcache.config.Configuration xmlConfig = new XmlConfiguration(Objects.requireNonNull(myUrl));
+    final EhcacheCachingProvider provider = (EhcacheCachingProvider) Caching.getCachingProvider("org.ehcache.jsr107.EhcacheCachingProvider");
+    return provider.getCacheManager(provider.getDefaultURI(), xmlConfig);
   }
 
   @Override

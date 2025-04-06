@@ -26,44 +26,44 @@ public class PermissionController {
   private final PermissionService permissionService;
 
   @GetMapping("/{id}")
-  public ResponseEntity<PermissionDTO> getPermissionById(@PathVariable Long id) {
-    PermissionDTO permissionDTO = permissionService.getPermissionById(id);
+  public ResponseEntity<PermissionDTO> getPermissionById(@PathVariable final Long id) {
+    final PermissionDTO permissionDTO = permissionService.getPermissionById(id);
     return ResponseEntity.ok(permissionDTO);
   }
 
   @GetMapping
   public ResponseEntity<List<PermissionDTO>> getPermissions(
-      @RequestParam("userId") Optional<Long> userId,
-      @RequestParam("appId") Optional<Long> appId) {
-    List<PermissionDTO> permissions = permissionService.getPermissions(userId, appId);
+      @RequestParam("userId") final Optional<Long> userId,
+      @RequestParam("appId") final Optional<Long> appId) {
+    final List<PermissionDTO> permissions = permissionService.getPermissions(userId, appId);
     return ResponseEntity.ok(permissions);
   }
 
   @PostMapping
-  public ResponseEntity<PermissionDTO> createPermission(@RequestBody PermissionDTO permissionDTO) {
-    PermissionDTO createdPermission = permissionService.createPermission(permissionDTO);
+  public ResponseEntity<PermissionDTO> createPermission(@RequestBody final PermissionDTO permissionDTO) {
+    final PermissionDTO createdPermission = permissionService.createPermission(permissionDTO);
     return ResponseEntity.ok(createdPermission);
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<PermissionDTO> updatePermission(@PathVariable Long id,
-      @RequestBody PermissionDTO permissionDTO) {
-    PermissionDTO updatedPermission = permissionService.updatePermission(id, permissionDTO);
+  public ResponseEntity<PermissionDTO> updatePermission(@PathVariable final Long id,
+      @RequestBody final PermissionDTO permissionDTO) {
+    final PermissionDTO updatedPermission = permissionService.updatePermission(id, permissionDTO);
     return ResponseEntity.ok(updatedPermission);
   }
 
   @PostMapping("/{userId}/resources/{resourceId}/update-permissions")
   @PreAuthorize("hasAuthority('ADMIN')")
   public ResponseEntity<Void> updateUserPermissions(
-      @PathVariable Long userId,
-      @PathVariable Long resourceId,
-      @RequestBody Action updatedAction) {
+      @PathVariable final Long userId,
+      @PathVariable final Long resourceId,
+      @RequestBody final Action updatedAction) {
     permissionService.updatePermissionsForUser(userId, resourceId, updatedAction);
     return ResponseEntity.ok().build();
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deletePermission(@PathVariable Long id) {
+  public ResponseEntity<Void> deletePermission(@PathVariable final Long id) {
     permissionService.deletePermission(id);
     return ResponseEntity.noContent().build();
   }

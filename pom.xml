@@ -6,22 +6,57 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.2</version>
-    <relativePath/> <!-- lookup parent from repository -->
+    <version>3.2.5</version>
+    <relativePath/>
   </parent>
   <groupId>com.codemaniac</groupId>
   <artifactId>authentication-service</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>authentication-service</name>
   <description>authentication-service</description>
+  <packaging>war</packaging>
+
   <properties>
     <aws.java-sdk-bom.version>1.12.731</aws.java-sdk-bom.version>
     <java.version>17</java.version>
     <commons.version>3.12.0</commons.version>
-    <tomcat9.version>9.0.73</tomcat9.version>
+    <tomcat.version>10.1.20</tomcat.version>
     <tomcat.port>8090</tomcat.port>
     <serverLevel>desktop</serverLevel>
+
+    <!-- Non-Test Dependencies -->
+    <commons-lang3.version>3.14.0</commons-lang3.version>
+    <httpclient.version>5.2.1</httpclient.version>
+    <jackson-bom.version>2.17.1</jackson-bom.version>
+    <jackson-databind-nullable.version>0.2.6</jackson-databind-nullable.version>
+    <javax-annotation-api.version>1.3.2</javax-annotation-api.version>
+    <javax-validation-api.version>2.0.1.Final</javax-validation-api.version>
+    <lombok.version>1.18.22</lombok.version>
     <remote.debugging.port>8001</remote.debugging.port>
+    <spring-security-bom.version>6.4.3</spring-security-bom.version>
+    <spring.retry.version>2.0.4</spring.retry.version>
+    <swagger-parser.version>2.1.25</swagger-parser.version>
+    <tomcat.version>10.1.20</tomcat.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- End Non-Test Dependencies -->
+
+    <!-- Test Dependencies -->
+    <junit-bom.version>5.10.3</junit-bom.version>
+    <mockito-bom.version>4.11.0</mockito-bom.version>
+    <!-- End Test Dependencies -->
+
+    <!-- Plugin Dependencies -->
+    <jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
+    <maven.clean.plugin.version>3.3.2</maven.clean.plugin.version>
+    <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+    <maven.dependency.plugin.version>3.6.1</maven.dependency.plugin.version>
+    <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+    <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
+    <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
+    <maven.jar.plugin.version>3.4.1</maven.jar.plugin.version>
+    <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+    <maven.war.plugin.version>3.4.0</maven.war.plugin.version>
+    <!-- End Plugin Dependencies -->
   </properties>
 
   <dependencyManagement>
@@ -33,7 +68,39 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson-bom.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>2.24.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-to-slf4j</artifactId>
+        <version>2.24.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${junit-bom.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-bom</artifactId>
+        <version>${mockito-bom.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
     </dependencies>
+
   </dependencyManagement>
   <dependencies>
     <!--        spring dependencies-->
@@ -122,16 +189,50 @@
       <artifactId>jjwt</artifactId>
       <version>0.9.1</version>
     </dependency>
+        <dependency>
+          <groupId>org.glassfish.jaxb</groupId>
+          <artifactId>jaxb-runtime</artifactId>
+          <version>2.3.1</version>
+        </dependency>
+
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
+      <version>${javax-validation-api.version}</version>
+    </dependency>
     <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
       <version>2.3.1</version>
     </dependency>
+
+
     <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <version>2.3.1</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
     </dependency>
+
+    <!--Mockito Core -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Mockito JUnit Jupiter (to use @ExtendWith(MockitoExtension.class)) -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -145,33 +246,134 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.cargo</groupId>
+          <artifactId>cargo-maven3-plugin</artifactId>
+          <version>1.10.15</version>
+          <configuration>
+            <container>
+              <containerId>tomcat10x</containerId>
+<!--              <output>target/output.log</output>-->
+<!--              <append>false</append>-->
+              <artifactInstaller>
+                <groupId>org.apache.tomcat</groupId>
+                <artifactId>tomcat</artifactId>
+                <version>${tomcat.version}</version>
+                <type>zip</type>
+              </artifactInstaller>
+              <systemProperties>
+                <env>desktop</env>
+                <spring.profiles.active>${serverLevel}</spring.profiles.active>
+                <logback.configurationFile>${serverLevel}/logback.xml</logback.configurationFile>
+                <java.util.logging.manager>org.apache.juli.ClassLoaderLogManager</java.util.logging.manager>
+                <bclass.infra.env>boa</bclass.infra.env>
+              </systemProperties>
+            </container>
+            <configuration>
+              <properties>
+                <cargo.servlet.port>${tomcat.port}</cargo.servlet.port>
+                <cargo.start.jvmargs>
+                  -Xdebug
+                  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${remote.debugging.port}
+                  -Xnoagent
+                </cargo.start.jvmargs>
+                <cargo.jvmargs>-Xmx2048m</cargo.jvmargs>
+                <cargo.tomcat.context.reloadable>true</cargo.tomcat.context.reloadable>
+              </properties>
+            </configuration>
+            <deployables>
+              <deployable>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>${project.artifactId}</artifactId>
+                <type>war</type>
+              </deployable>
+            </deployables>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <goals>
+                <goal>repackage</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <jvmArguments>
+              -Xdebug
+              -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${remote.debugging.port}
+              -Xnoagent
+              -Djava.compiler=NONE
+              -Derac.serverLevel=${serverLevel}
+              -Dspring.profiles.active=${serverLevel}
+              -Dserver.port=8080
+            </jvmArguments>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven.enforcer.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>${maven.clean.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>${maven.dependency.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${maven.install.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven.jar.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven.resources.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>${maven.war.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.1.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <jvmArguments>
-            -Xdebug
-            -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${remote.debugging.port}
-            -Xnoagent
-            -Djava.compiler=NONE
-            -DserverLevel=${serverLevel}
-            -Dspring.profiles.active=${serverLevel}
-            -Dserver.port=8081
-          </jvmArguments>
-          <excludes>
-            <exclude>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <annotationProcessorPaths>
+            <path>
               <groupId>org.projectlombok</groupId>
               <artifactId>lombok</artifactId>
-            </exclude>
-          </excludes>
+              <version>${lombok.version}</version>
+            </path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
     </plugins>

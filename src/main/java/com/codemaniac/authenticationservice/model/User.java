@@ -55,7 +55,6 @@ public class User implements Auditable {
       joinColumns = @JoinColumn(name = "user_id"),
       inverseJoinColumns = @JoinColumn(name = "application_id")
   )
-  @ToString.Exclude
   private Set<Application> applications = new HashSet<>();
 
   @Embedded

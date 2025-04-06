@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/authdb
     username: root
-    password: ${database.password}
+    password: dev@123
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -12,7 +12,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-#        dialect: org.hibernate.dialect.MySQLDialect
+        #        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
 s3:

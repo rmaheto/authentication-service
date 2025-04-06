@@ -14,6 +14,7 @@ import com.codemaniac.authenticationservice.repository.ApplicationRepository;
 import com.codemaniac.authenticationservice.repository.PermissionRepository;
 import com.codemaniac.authenticationservice.repository.ResourceRepository;
 import com.codemaniac.authenticationservice.repository.UserRepository;
+import jakarta.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -36,40 +37,41 @@ public class ApplicationServiceImpl implements ApplicationService {
   private final PermissionRepository permissionRepository;
 
   @Override
-  public ApplicationDTO registerApplication(String name, String domain) {
+  public ApplicationDTO registerApplication(@Nonnull final String name, @Nonnull final String domain) {
     try {
-      Application application = new Application();
+      final Application application = new Application();
       application.setName(name);
       application.setDomain(domain);
-      Application savedApp = applicationRepository.save(application);
+      final Application savedApp = applicationRepository.save(application);
       log.info("registered app with name: {} and domain: {} ", name, domain);
       return ApplicationMapper.convertToDTO(savedApp);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       log.warn("Failed to register app with name: {} with domain: {}", name, domain, e);
       return null;
     }
   }
 
   @Override
-  public ApplicationDTO findByName(String name) {
-    Application application = applicationRepository.findByName(name);
+  public ApplicationDTO findByName(@Nonnull final String name) {
+    final Application application = applicationRepository.findByName(name);
     return ApplicationMapper.convertToDTO(application);
   }
 
   @Override
-  public boolean existsByDomain(String domain) {
+  public boolean existsByDomain(@Nonnull final String domain) {
     return applicationRepository.findByDomain(domain) != null;
   }
 
   @Override
-  public Optional<ApplicationDTO> findOne(Long id) {
+  public Optional<ApplicationDTO> findOne(@Nonnull final Long id) {
     return applicationRepository.findById(id).map(ApplicationMapper::convertToDTO);
   }
 
   @Override
-  public Optional<Application> findById(Long id) {
+  public Optional<Application> findById(@Nonnull final Long id) {
     return applicationRepository.findById(id);
   }
+
   @Override
   public List<ApplicationDTO> findAll() {
     return applicationRepository.findAll().stream()
@@ -78,7 +80,7 @@ public class ApplicationServiceImpl implements ApplicationService {
   }
 
   @Override
-  public void updateApplication(ApplicationDTO applicationDTO) {
+  public void updateApplication(@Nonnull final ApplicationDTO applicationDTO) {
     applicationRepository.findById(applicationDTO.getId())
         .ifPresent(application -> {
           if (StringUtils.isNotBlank(applicationDTO.getName())) {
@@ -93,41 +95,35 @@ public class ApplicationServiceImpl implements ApplicationService {
 
   @Override
   @Transactional
-  public ResourceDTO addResourceToApplication(Long appId, ResourceDTO resourceDTO) {
-    Application application = applicationRepository.findById(appId)
+  public ResourceDTO addResourceToApplication(@Nonnull final Long appId, @Nonnull final ResourceDTO resourceDTO) {
+    final Application application = applicationRepository.findById(appId)
         .orElseThrow(
             () -> new ResourceNotFoundException("Application not found with id: " + appId));
 
-    // Create the new resource
     Resource resource = new Resource();
     resource.setName(resourceDTO.getName());
     resource.setApplication(application);
 
     resource = resourceRepository.save(resource);
 
-    // Assign default permissions to all users assigned to the application
     assignDefaultPermissionsToUsers(application, resource);
     log.info("resource:{} added to app with name: {} successfully", application.getName(),
         resource);
     return ResourceMapper.toDTO(resource);
   }
 
-  private void assignDefaultPermissionsToUsers(Application application, Resource resource) {
-    // Fetch all users assigned to the application
-    List<User> users = userRepository.findByApplicationsContaining(application);
+  private void assignDefaultPermissionsToUsers(@Nonnull final Application application, @Nonnull final Resource resource) {
+
+    final List<User> users = userRepository.findByApplicationsContaining(application);
 
     users.forEach(user -> {
-      // Create a new permission for the resource with default values
-      Permission permission = new Permission();
+      final Permission permission = new Permission();
       permission.setResource(resource);
       permission.setAction(new Action()); // Default values are false
-
-      // Add the permission to the user's permissions
       user.getPermissions().add(permission);
       permissionRepository.save(permission);
     });
 
-    // Save the users with the new permissions
     userRepository.saveAll(users);
   }
 }

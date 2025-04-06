@@ -19,27 +19,27 @@ public class ResourceController {
   private final ResourceService resourceService;
 
   @PostMapping("/app/{appId}")
-  public ResponseEntity<Void> createResource(@PathVariable Long appId, @RequestBody ResourceDTO resourceDTO) {
+  public ResponseEntity<Void> createResource(@PathVariable final Long appId, @RequestBody final ResourceDTO resourceDTO) {
     resourceService.addResource(appId, resourceDTO);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<ResourceDTO> getResourceById(@PathVariable Long id) {
-    Optional<ResourceDTO> resourceDTO = resourceService.findById(id);
+  public ResponseEntity<ResourceDTO> getResourceById(@PathVariable final Long id) {
+    final Optional<ResourceDTO> resourceDTO = resourceService.findById(id);
     return resourceDTO.map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PatchMapping("/{id}")
-  public ResponseEntity<Void> updateResource(@PathVariable Long id,
-      @RequestBody Map<String, Object> updates) {
+  public ResponseEntity<Void> updateResource(@PathVariable final Long id,
+      @RequestBody final Map<String, Object> updates) {
     resourceService.patchResource(id, updates);
     return ResponseEntity.ok().build();
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
+  public ResponseEntity<Void> deleteResource(@PathVariable final Long id) {
     resourceService.deleteResource(id);
     return ResponseEntity.noContent().build();
   }
