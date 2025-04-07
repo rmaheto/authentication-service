@@ -20,7 +20,7 @@ import org.springframework.core.env.Environment;
 
 @Configuration
 @Slf4j
-class ExternalPropertiesConfig {
+public class ExternalPropertiesConfig {
 
   private static final String ENCRYPTION_SECRET_KEY = "ENCRYPTION_SECRET_KEY";
 

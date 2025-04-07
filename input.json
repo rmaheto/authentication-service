@@ -1,0 +1,5 @@
+{
+  "SOLUTION_ID": "authsvc",
+  "APPLICATION": "authentication-service",
+  "GIT_CREDENTIALS": "github-ssh-key"
+}
