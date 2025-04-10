@@ -14,7 +14,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>authentication-service</name>
   <description>authentication-service</description>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
 
   <properties>
     <aws.java-sdk-bom.version>1.12.731</aws.java-sdk-bom.version>
