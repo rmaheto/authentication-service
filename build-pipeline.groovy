@@ -6,7 +6,8 @@ def runPipeline(Map config) {
         def BUILD_TYPE = config.buildType
         def VERSION
         def PROPS = config.props
-        def CHECKOUT_DIR = config.dir ?: SERVICE_NAME // 🔧 Use passed-in dir instead of hardcoding SERVICE_NAME
+        def CHECKOUT_DIR = config.dir ?: SERVICE_NAME
+        def FULL_DIR = "${env.WORKSPACE}/${CHECKOUT_DIR}" // 🛠️ Full absolute path
 
         echo "🚀 Starting pipeline for service: ${SERVICE_NAME}"
         echo "🔗 Repo: ${GIT_REPO}"
@@ -22,7 +23,7 @@ def runPipeline(Map config) {
         }
 
         stage('Setup') {
-            dir(CHECKOUT_DIR) {
+            dir(FULL_DIR) {
                 echo '🧹 Cleaning environment...'
                 sh 'mvn clean'
 
@@ -33,7 +34,7 @@ def runPipeline(Map config) {
         }
 
         stage('Build') {
-            dir(CHECKOUT_DIR) {
+            dir(FULL_DIR) {
                 script {
                     def pom = readMavenPom file: 'pom.xml'
                     VERSION = "${pom.version}.${env.BUILD_NUMBER}"
@@ -53,7 +54,7 @@ def runPipeline(Map config) {
                 expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
             }
             steps {
-                dir(CHECKOUT_DIR) {
+                dir(FULL_DIR) {
                     echo "📤 Publishing artifact version ${VERSION}..."
                     sh "echo Simulating publish of artifact version ${VERSION}"
                 }
@@ -65,7 +66,7 @@ def runPipeline(Map config) {
                 expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
             }
             steps {
-                dir(CHECKOUT_DIR) {
+                dir(FULL_DIR) {
                     script {
                         def SSH_ID = "${PROPS['SOLUTION_ID']}_ssh"
                         echo "🏷️ Tagging repo with ${PROPS['APPLICATION']}_${VERSION}"
@@ -87,7 +88,7 @@ def runPipeline(Map config) {
                 expression { BUILD_TYPE.toString() == 'build_publish_deploy' }
             }
             steps {
-                dir(CHECKOUT_DIR) {
+                dir(FULL_DIR) {
                     echo "🚀 Deploying application..."
                     sshagent(credentials: ['kong-server-ssh-key']) {
                         sh """
@@ -104,4 +105,5 @@ def runPipeline(Map config) {
         }
     }
 }
+
 return this
