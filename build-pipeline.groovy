@@ -7,8 +7,6 @@ def runPipeline(Map config) {
         def VERSION
         def PROPS = config.props
 
-        def WORK_DIR = 'authentication-service' // Directory where the repo was checked out
-
         echo "🚀 Starting pipeline for service: ${SERVICE_NAME}"
         echo "🔗 Repo: ${GIT_REPO}"
         echo "🌿 Branch: ${GIT_BRANCH}"
@@ -22,19 +20,18 @@ def runPipeline(Map config) {
             echo "✅ BUILD_TYPE: ${BUILD_TYPE}"
         }
 
-        stage('Setup') {
-            dir(WORK_DIR) {
+        dir(SERVICE_NAME) {  // 👈 Wrap all project file references in this block
+            stage('Setup') {
                 echo '🧹 Cleaning environment...'
+                sh 'ls -la && pwd'  // Debug: See current path
                 sh 'mvn clean'
 
                 if (!PROPS['SOLUTION_ID'] || !PROPS['APPLICATION']) {
                     error "❌ Missing required fields in input.json (SOLUTION_ID or APPLICATION)"
                 }
             }
-        }
 
-        stage('Build') {
-            dir(WORK_DIR) {
+            stage('Build') {
                 script {
                     def pom = readMavenPom file: 'pom.xml'
                     VERSION = "${pom.version}.${env.BUILD_NUMBER}"
@@ -47,26 +44,22 @@ def runPipeline(Map config) {
                     sh 'mvn install'
                 }
             }
-        }
 
-        stage('Publish') {
-            when {
-                expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
-            }
-            steps {
-                dir(WORK_DIR) {
+            stage('Publish') {
+                when {
+                    expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
+                }
+                steps {
                     echo "📤 Publishing artifact version ${VERSION}..."
                     sh "echo Simulating publish of artifact version ${VERSION}"
                 }
             }
-        }
 
-        stage('Tag') {
-            when {
-                expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
-            }
-            steps {
-                dir(WORK_DIR) {
+            stage('Tag') {
+                when {
+                    expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
+                }
+                steps {
                     script {
                         def SSH_ID = "${PROPS['SOLUTION_ID']}_ssh"
                         echo "🏷️ Tagging repo with ${PROPS['APPLICATION']}_${VERSION}"
@@ -81,14 +74,12 @@ def runPipeline(Map config) {
                     }
                 }
             }
-        }
 
-        stage('Deploy') {
-            when {
-                expression { BUILD_TYPE.toString() == 'build_publish_deploy' }
-            }
-            steps {
-                dir(WORK_DIR) {
+            stage('Deploy') {
+                when {
+                    expression { BUILD_TYPE.toString() == 'build_publish_deploy' }
+                }
+                steps {
                     echo "🚀 Deploying application..."
                     sshagent(credentials: ['kong-server-ssh-key']) {
                         sh """
