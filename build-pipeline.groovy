@@ -6,7 +6,7 @@ def runPipeline(Map config) {
         def BUILD_TYPE = config.buildType
         def VERSION
         def PROPS = config.props
-        def CHECKOUT_DIR = SERVICE_NAME // matches your Jenkinsfile’s CHECKOUT_DIR
+        def CHECKOUT_DIR = config.dir ?: SERVICE_NAME // 🔧 Use passed-in dir instead of hardcoding SERVICE_NAME
 
         echo "🚀 Starting pipeline for service: ${SERVICE_NAME}"
         echo "🔗 Repo: ${GIT_REPO}"
