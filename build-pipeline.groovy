@@ -7,6 +7,8 @@ def runPipeline(Map config) {
         def VERSION
         def PROPS = config.props
 
+        def WORK_DIR = 'authentication-service' // Directory where the repo was checked out
+
         echo "🚀 Starting pipeline for service: ${SERVICE_NAME}"
         echo "🔗 Repo: ${GIT_REPO}"
         echo "🌿 Branch: ${GIT_BRANCH}"
@@ -21,15 +23,18 @@ def runPipeline(Map config) {
         }
 
         stage('Setup') {
+            dir(WORK_DIR) {
                 echo '🧹 Cleaning environment...'
                 sh 'mvn clean'
 
                 if (!PROPS['SOLUTION_ID'] || !PROPS['APPLICATION']) {
                     error "❌ Missing required fields in input.json (SOLUTION_ID or APPLICATION)"
                 }
+            }
         }
 
         stage('Build') {
+            dir(WORK_DIR) {
                 script {
                     def pom = readMavenPom file: 'pom.xml'
                     VERSION = "${pom.version}.${env.BUILD_NUMBER}"
@@ -41,6 +46,7 @@ def runPipeline(Map config) {
                     echo "🏗️  Building version: ${VERSION}"
                     sh 'mvn install'
                 }
+            }
         }
 
         stage('Publish') {
@@ -48,8 +54,10 @@ def runPipeline(Map config) {
                 expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
             }
             steps {
+                dir(WORK_DIR) {
                     echo "📤 Publishing artifact version ${VERSION}..."
                     sh "echo Simulating publish of artifact version ${VERSION}"
+                }
             }
         }
 
@@ -58,6 +66,7 @@ def runPipeline(Map config) {
                 expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
             }
             steps {
+                dir(WORK_DIR) {
                     script {
                         def SSH_ID = "${PROPS['SOLUTION_ID']}_ssh"
                         echo "🏷️ Tagging repo with ${PROPS['APPLICATION']}_${VERSION}"
@@ -70,6 +79,7 @@ def runPipeline(Map config) {
                             """
                         }
                     }
+                }
             }
         }
 
@@ -78,6 +88,7 @@ def runPipeline(Map config) {
                 expression { BUILD_TYPE.toString() == 'build_publish_deploy' }
             }
             steps {
+                dir(WORK_DIR) {
                     echo "🚀 Deploying application..."
                     sshagent(credentials: ['kong-server-ssh-key']) {
                         sh """
@@ -85,6 +96,7 @@ def runPipeline(Map config) {
                             ssh -o StrictHostKeyChecking=no ec2-user@44.222.204.57 "docker exec kong kong reload"
                         """
                     }
+                }
             }
         }
 
@@ -93,4 +105,5 @@ def runPipeline(Map config) {
         }
     }
 }
+
 return this
