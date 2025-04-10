@@ -21,18 +21,15 @@ def runPipeline(Map config) {
         }
 
         stage('Setup') {
-            dir('app') {
                 echo '🧹 Cleaning environment...'
                 sh 'mvn clean'
 
                 if (!PROPS['SOLUTION_ID'] || !PROPS['APPLICATION']) {
                     error "❌ Missing required fields in input.json (SOLUTION_ID or APPLICATION)"
                 }
-            }
         }
 
         stage('Build') {
-            dir('app') {
                 script {
                     def pom = readMavenPom file: 'pom.xml'
                     VERSION = "${pom.version}.${env.BUILD_NUMBER}"
@@ -44,7 +41,6 @@ def runPipeline(Map config) {
                     echo "🏗️  Building version: ${VERSION}"
                     sh 'mvn install'
                 }
-            }
         }
 
         stage('Publish') {
@@ -52,10 +48,8 @@ def runPipeline(Map config) {
                 expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
             }
             steps {
-                dir('app') {
                     echo "📤 Publishing artifact version ${VERSION}..."
                     sh "echo Simulating publish of artifact version ${VERSION}"
-                }
             }
         }
 
@@ -64,7 +58,6 @@ def runPipeline(Map config) {
                 expression { ['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString()) }
             }
             steps {
-                dir('app') {
                     script {
                         def SSH_ID = "${PROPS['SOLUTION_ID']}_ssh"
                         echo "🏷️ Tagging repo with ${PROPS['APPLICATION']}_${VERSION}"
@@ -77,7 +70,6 @@ def runPipeline(Map config) {
                             """
                         }
                     }
-                }
             }
         }
 
@@ -86,7 +78,6 @@ def runPipeline(Map config) {
                 expression { BUILD_TYPE.toString() == 'build_publish_deploy' }
             }
             steps {
-                dir('app') {
                     echo "🚀 Deploying application..."
                     sshagent(credentials: ['kong-server-ssh-key']) {
                         sh """
@@ -94,7 +85,6 @@ def runPipeline(Map config) {
                             ssh -o StrictHostKeyChecking=no ec2-user@44.222.204.57 "docker exec kong kong reload"
                         """
                     }
-                }
             }
         }
 
