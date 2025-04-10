@@ -7,7 +7,7 @@ def runPipeline(Map config) {
         def VERSION
         def PROPS = config.props
         def CHECKOUT_DIR = config.dir ?: SERVICE_NAME
-        def FULL_DIR = "${env.WORKSPACE}/${CHECKOUT_DIR}" // 🛠️ Full absolute path
+        def FULL_DIR = config.dir // 🛠️ Full absolute path
 
         echo "🚀 Starting pipeline for service: ${SERVICE_NAME}"
         echo "🔗 Repo: ${GIT_REPO}"
