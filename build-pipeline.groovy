@@ -68,7 +68,7 @@ def runPipeline(Map config) {
                 cp target/${SERVICE_NAME}-0.0.1-SNAPSHOT.jar target/${SERVICE_NAME}-${VERSION}.jar
 
                 echo "📤 Uploading jar to S3... codemaniac-storage"
-                aws s3 cp target/${SERVICE_NAME}-${VERSION}.jar s3://codemaniac-storage/${SERVICE_NAME}/${SERVICE_NAME}-${VERSION}.jar
+                aws s3 cp target/${SERVICE_NAME}-${VERSION}.jar s3://${S3_BUCKET}/${SERVICE_NAME}/${SERVICE_NAME}-${VERSION}.jar
             """
                     }
                 }
@@ -80,15 +80,15 @@ def runPipeline(Map config) {
             stage('Tag')
             dir(FULL_DIR) {
                 script {
-                    def SSH_ID = "${PROPS['SOLUTION_ID']}_ssh"
+                    def SSH_ID = PROPS['GIT_CREDENTIALS']
                     echo "🏷️ Tagging repo with ${PROPS['APPLICATION']}_${VERSION}"
                     sshagent([SSH_ID]) {
                         sh """
-                                git config user.name "jenkins"
-                                git config user.email "jenkins@example.com"
-                                git tag -a ${PROPS['APPLICATION']}_${VERSION} -m 'Tagged from ${GIT_REPO}'
-                                git push origin --tags
-                            """
+                    git config user.name "jenkins"
+                    git config user.email "jenkins@example.com"
+                    git tag -a ${PROPS['APPLICATION']}_${VERSION} -m 'Tagged from ${GIT_REPO}'
+                    git push origin --tags
+                """
                     }
                 }
             }
@@ -110,7 +110,7 @@ def runPipeline(Map config) {
 
         script {
             def subject = currentBuild.currentResult == 'SUCCESS' ? "✅ Build Success" : "❌ Build Failed"
-            def body = """\
+            def body = """
             <p>Build <b>${currentBuild.fullDisplayName}</b> finished with result: <b>${currentBuild.currentResult}</b></p>
             <p>Branch: ${GIT_BRANCH}</p>
             <p>Version: ${VERSION}</p>
