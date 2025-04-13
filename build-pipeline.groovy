@@ -64,8 +64,11 @@ def runPipeline(Map config) {
                 dir(FULL_DIR) {
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins-creds']]) {
                         sh """
-                echo "📤 Uploading jar to S3... ${S3_BUCKET}"
-                aws s3 cp target/${SERVICE_NAME}-${VERSION}.jar s3://${S3_BUCKET}/${SERVICE_NAME}/${SERVICE_NAME}-${VERSION}.jar
+                echo "📦 Renaming jar to match version ${VERSION}..."
+                cp target/${SERVICE_NAME}-0.0.1-SNAPSHOT.jar target/${SERVICE_NAME}-${VERSION}.jar
+
+                echo "📤 Uploading jar to S3... codemaniac-storage"
+                aws s3 cp target/${SERVICE_NAME}-${VERSION}.jar s3://codemaniac-storage/${SERVICE_NAME}/${SERVICE_NAME}-${VERSION}.jar
             """
                     }
                 }
