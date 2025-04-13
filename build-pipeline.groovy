@@ -13,32 +13,29 @@ def runPipeline(Map config) {
         echo "🔗 Repo: ${GIT_REPO}"
         echo "🌿 Branch: ${GIT_BRANCH}"
 
-        stage('Tool Install') {
-            echo '🔧 Installing required tools...'
-            sh 'python3 -m pip install pyyaml'
-        }
+
+        echo '🔧 Installing required tools...'
+        sh 'python3 -m pip install pyyaml'
+
 
         stage('Validate Params') {
             echo "✅ BUILD_TYPE: ${BUILD_TYPE}"
         }
 
-        stage('Setup') {
-            dir(FULL_DIR) {
-                echo '🧹 Cleaning environment...'
-                def cleanStatus = sh(script: 'mvn clean', returnStatus: true)
-                if (cleanStatus != 0) {
-                    error "❌ Maven clean failed with exit code ${cleanStatus}"
-                }
-
-                if (!PROPS['SOLUTION_ID'] || !PROPS['APPLICATION']) {
-                    error "❌ Missing required fields in input.json (SOLUTION_ID or APPLICATION)"
-                }
-            }
-        }
-
         stage('Build') {
             dir(FULL_DIR) {
                 script {
+
+                    echo '🧹 Cleaning environment...'
+                    def cleanStatus = sh(script: 'mvn clean', returnStatus: true)
+                    if (cleanStatus != 0) {
+                        error "❌ Maven clean failed with exit code ${cleanStatus}"
+                    }
+
+                    if (!PROPS['SOLUTION_ID'] || !PROPS['APPLICATION']) {
+                        error "❌ Missing required fields in input.json (SOLUTION_ID or APPLICATION)"
+                    }
+
                     def pom = readMavenPom file: 'pom.xml'
                     VERSION = "${pom.version}.${env.BUILD_NUMBER}"
                     env.VERSION = VERSION
