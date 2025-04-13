@@ -6,8 +6,8 @@ def runPipeline(Map config) {
         def BUILD_TYPE = config.buildType
         def VERSION
         def PROPS = config.props
-        def CHECKOUT_DIR = config.dir ?: SERVICE_NAME
         def FULL_DIR = config.dir // 🛠️ Full absolute path
+        def S3_BUCKET = PROPS['S3_BUCKET']
 
         echo "🚀 Starting pipeline for service: ${SERVICE_NAME}"
         echo "🔗 Repo: ${GIT_REPO}"
@@ -62,8 +62,12 @@ def runPipeline(Map config) {
         if (['build_publish', 'build_publish_deploy'].contains(BUILD_TYPE.toString())) {
             stage('Publish') {
                 dir(FULL_DIR) {
-                    echo "📤 Publishing artifact version ${VERSION}..."
-                    sh "echo Simulating publish of artifact version ${VERSION}"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins-creds']]) {
+                        sh """
+                echo "📤 Uploading jar to S3... ${S3_BUCKET}"
+                aws s3 cp target/${SERVICE_NAME}-${VERSION}.jar s3://${S3_BUCKET}/${SERVICE_NAME}/${SERVICE_NAME}-${VERSION}.jar
+            """
+                    }
                 }
             }
         }
@@ -102,7 +106,21 @@ def runPipeline(Map config) {
 
 
         stage('Post Actions') {
-            echo "✅ Pipeline complete for ${SERVICE_NAME} (${BUILD_TYPE})"
+            script {
+                def subject = currentBuild.currentResult == 'SUCCESS' ? "✅ Build Success" : "❌ Build Failed"
+                def body = """\
+            <p>Build <b>${currentBuild.fullDisplayName}</b> finished with result: <b>${currentBuild.currentResult}</b></p>
+            <p>Branch: ${GIT_BRANCH}</p>
+            <p>Version: ${VERSION}</p>
+            <p><a href="${env.BUILD_URL}">Click here to view the build</a></p>
+        """
+
+                emailext(
+                        subject: subject,
+                        body: body,
+                        to: 'you@example.com'
+                )
+            }
         }
     }
 }

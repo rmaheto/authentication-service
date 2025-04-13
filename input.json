@@ -1,5 +1,6 @@
 {
   "SOLUTION_ID": "authsvc",
   "APPLICATION": "authentication-service",
-  "GIT_CREDENTIALS": "github-ssh-key"
+  "GIT_CREDENTIALS": "github-ssh-key",
+  "S3_BUCKET": "codemaniac-storage"
 }
