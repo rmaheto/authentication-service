@@ -25,7 +25,10 @@ def runPipeline(Map config) {
         stage('Setup') {
             dir(FULL_DIR) {
                 echo '🧹 Cleaning environment...'
-                sh 'mvn clean'
+                def cleanStatus = sh(script: 'mvn clean', returnStatus: true)
+                if (cleanStatus != 0) {
+                    error "❌ Maven clean failed with exit code ${cleanStatus}"
+                }
 
                 if (!PROPS['SOLUTION_ID'] || !PROPS['APPLICATION']) {
                     error "❌ Missing required fields in input.json (SOLUTION_ID or APPLICATION)"
@@ -41,10 +44,16 @@ def runPipeline(Map config) {
                     env.VERSION = VERSION
 
                     echo "🧪 Running tests..."
-                    sh 'mvn test'
+                    def testStatus = sh(script: 'mvn test', returnStatus: true)
+                    if (testStatus != 0) {
+                        error "❌ Tests failed with exit code ${testStatus}"
+                    }
 
                     echo "🏗️  Building version: ${VERSION}"
-                    sh 'mvn install'
+                    def buildStatus = sh(script: 'mvn install', returnStatus: true)
+                    if (buildStatus != 0) {
+                        error "❌ Maven install failed with exit code ${buildStatus}"
+                    }
                 }
             }
         }
