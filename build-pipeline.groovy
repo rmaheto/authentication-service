@@ -104,23 +104,25 @@ def runPipeline(Map config) {
             }
         }
 
+    }
 
-        script {
-            def subject = currentBuild.currentResult == 'SUCCESS' ? "✅ Build Success" : "❌ Build Failed"
-            def body = """
-            <p>Build <b>${currentBuild.fullDisplayName}</b> finished with result: <b>${currentBuild.currentResult}</b></p>
-            <p>Branch: ${GIT_BRANCH}</p>
-            <p>Version: ${VERSION}</p>
-            <p><a href="${env.BUILD_URL}">Click here to view the build</a></p>
-        """
-
-            emailext(
-                    subject: subject,
-                    body: body,
-                    to: 'rmkaheto@gmail.com'
-            )
+    post {
+        always {
+            script {
+                def subject = currentBuild.currentResult == 'SUCCESS' ? "✅ Build Success" : "❌ Build Failed"
+                def body = """
+                <p>Build <b>${currentBuild.fullDisplayName}</b> finished with result: <b>${currentBuild.currentResult}</b></p>
+                <p>Branch: ${config.branch}</p>
+                <p>Version: ${env.VERSION ?: 'N/A'}</p>
+                <p><a href="${env.BUILD_URL}">Click here to view the build</a></p>
+            """
+                emailext(
+                        subject: subject,
+                        body: body,
+                        to: 'rmkaheto@gmail.com'
+                )
+            }
         }
-
     }
 }
 

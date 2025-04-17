@@ -75,6 +75,7 @@ public class ExternalPropertiesConfig {
   /**
    * Construct the external properties file path
    */
+  @Nonnull
   private static String getExternalFilePath(@Nonnull final String fileName, @Nonnull final String activeProfile) {
 
     return Paths.get(
