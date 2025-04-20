@@ -37,7 +37,8 @@ public class ApplicationServiceImpl implements ApplicationService {
   private final PermissionRepository permissionRepository;
 
   @Override
-  public ApplicationDTO registerApplication(@Nonnull final String name, @Nonnull final String domain) {
+  public ApplicationDTO registerApplication(
+      @Nonnull final String name, @Nonnull final String domain) {
     try {
       final Application application = new Application();
       application.setName(name);
@@ -74,55 +75,59 @@ public class ApplicationServiceImpl implements ApplicationService {
 
   @Override
   public List<ApplicationDTO> findAll() {
-    return applicationRepository.findAll().stream()
-        .map(ApplicationMapper::convertToDTO)
-        .toList();
+    return applicationRepository.findAll().stream().map(ApplicationMapper::convertToDTO).toList();
   }
 
   @Override
   public void updateApplication(@Nonnull final ApplicationDTO applicationDTO) {
-    applicationRepository.findById(applicationDTO.getId())
-        .ifPresent(application -> {
-          if (StringUtils.isNotBlank(applicationDTO.getName())) {
-            application.setName(applicationDTO.getName());
-          }
-          if (StringUtils.isNotBlank(applicationDTO.getDomain())) {
-            application.setDomain(applicationDTO.getDomain());
-          }
-          applicationRepository.save(application);
-        });
+    applicationRepository
+        .findById(applicationDTO.getId())
+        .ifPresent(
+            application -> {
+              if (StringUtils.isNotBlank(applicationDTO.getName())) {
+                application.setName(applicationDTO.getName());
+              }
+              if (StringUtils.isNotBlank(applicationDTO.getDomain())) {
+                application.setDomain(applicationDTO.getDomain());
+              }
+              applicationRepository.save(application);
+            });
   }
 
   @Override
   @Transactional
-  public ResourceDTO addResourceToApplication(@Nonnull final Long appId, @Nonnull final ResourceDTO resourceDTO) {
-    final Application application = applicationRepository.findById(appId)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Application not found with id: " + appId));
+  public ResourceDTO addResourceToApplication(
+      @Nonnull final Long appId, @Nonnull final ResourceDTO resourceDTO) {
+    final Application application =
+        applicationRepository
+            .findById(appId)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Application not found with id: " + appId));
 
     Resource resource = new Resource();
     resource.setName(resourceDTO.getName());
     resource.setApplication(application);
 
     resource = resourceRepository.save(resource);
+    final List<User> users = userRepository.findByApplicationsContaining(application);
 
-    assignDefaultPermissionsToUsers(application, resource);
-    log.info("resource:{} added to app with name: {} successfully", application.getName(),
-        resource);
+    assignDefaultPermissionsToUsers(users, resource);
+    log.info(
+        "resource:{} added to app with name: {} successfully", application.getName(), resource);
     return ResourceMapper.toDTO(resource);
   }
 
-  private void assignDefaultPermissionsToUsers(@Nonnull final Application application, @Nonnull final Resource resource) {
+  private void assignDefaultPermissionsToUsers(
+      @Nonnull final List<User> users, @Nonnull final Resource resource) {
 
-    final List<User> users = userRepository.findByApplicationsContaining(application);
-
-    users.forEach(user -> {
-      final Permission permission = new Permission();
-      permission.setResource(resource);
-      permission.setAction(new Action()); // Default values are false
-      user.getPermissions().add(permission);
-      permissionRepository.save(permission);
-    });
+    users.forEach(
+        user -> {
+          final Permission permission = new Permission();
+          permission.setResource(resource);
+          permission.setAction(new Action()); // Default values are false
+          user.getPermissions().add(permission);
+          permissionRepository.save(permission);
+        });
 
     userRepository.saveAll(users);
   }
