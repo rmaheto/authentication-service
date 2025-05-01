@@ -42,7 +42,7 @@
 
     <!-- Test Dependencies -->
     <junit-bom.version>5.10.3</junit-bom.version>
-    <mockito-bom.version>4.11.0</mockito-bom.version>
+    <mockito-bom.version>5.11.0</mockito-bom.version>
     <!-- End Test Dependencies -->
 
     <!-- Plugin Dependencies -->
@@ -228,7 +228,8 @@
     <!--Mockito Core -->
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
+      <artifactId>mockito-inline</artifactId>
+      <version>5.2.0</version>
       <scope>test</scope>
     </dependency>
 
